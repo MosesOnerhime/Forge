@@ -26,6 +26,7 @@ export default function SessionPage() {
   const [historicalBests, setHistoricalBests] = useState<Record<string,number>>({})
   const [timer, setTimer] = useState<number | null>(null)
   const [timerRun, setTimerRun] = useState(0)
+  const [notifyRest, setNotifyRest] = useState(false)
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -60,6 +61,7 @@ export default function SessionPage() {
     } catch (caught) { setError(errorMessage(caught)) } finally { setLoading(false) }
   }, [id])
   useEffect(() => { if (user) queueMicrotask(() => { void load() }) }, [user, load])
+  useEffect(() => { if (!user) return; let live = true; void supabase().from('profiles').select('timer_notifications').eq('user_id', user.id).maybeSingle().then(({ data, error:profileError }) => { if (!live) return; if (profileError) setError(profileError.message); else setNotifyRest(data?.timer_notifications ?? false) }); return () => { live = false } }, [user])
 
   async function saveSet(item: SessionExercise, setNumber: number, weight: string, reps: string, rir: string): Promise<boolean> {
     if (!user) return false
@@ -69,8 +71,7 @@ export default function SessionPage() {
       if (!Number.isFinite(w) || w < 0 || !Number.isInteger(r) || r < 0 || (reserve !== null && (!Number.isFinite(reserve) || reserve < 0 || reserve > 10))) throw new Error('Enter a valid weight, whole number of reps, and RIR from 0 to 10.')
       const { error } = await supabase().from('workout_sets').upsert({ user_id: user.id, session_exercise_id: item.id, set_number: setNumber, weight_kg: w, reps: r, rir: reserve, completed: true, completed_at: new Date().toISOString() }, { onConflict: 'session_exercise_id,set_number' })
       if (error) throw error
-      setTimer(item.rest_seconds)
-      setTimerRun(value => value + 1)
+      if (item.rest_seconds > 0) { setTimer(item.rest_seconds); setTimerRun(value => value + 1) }
       await load()
       return true
     } catch (caught) { setError(errorMessage(caught)); return false } finally { setBusy(false) }
@@ -120,7 +121,7 @@ export default function SessionPage() {
         <Link href="/today" className="btn primary">Back to Today</Link>
       </div>}
     </>}
-    {timer !== null && <RestTimer key={timerRun} duration={timer} onDismiss={() => setTimer(null)} />}
+    {timer !== null && <RestTimer key={timerRun} duration={timer} notify={notifyRest} onDismiss={() => setTimer(null)} />}
   </>
 }
 

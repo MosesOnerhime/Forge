@@ -34,3 +34,5 @@ Create separate development and production Supabase projects, apply the migratio
 Progress photos are private Supabase Storage objects served through short-lived signed URLs. The PWA service worker caches only the offline message and icon, never private records.
 
 New accounts are routed through `/onboarding` to set units, a goal, nutrition targets, and optional starting progress. The database migration stores completion in `profiles.onboarding_completed_at`; applying this initial migration to a new Supabase project is required before testing sign-in and setup.
+
+Settings includes a default rest duration for newly added exercises and an opt-in rest-complete browser notification. Browsers may require notification permission from the user; the timer remains usable without it.

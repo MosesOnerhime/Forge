@@ -9,6 +9,8 @@ create table public.profiles (
   units varchar(10) not null default 'metric' check (units in ('metric', 'imperial')),
   timezone varchar(50) not null default 'UTC',
   onboarding_completed_at timestamptz,
+  default_rest_seconds integer not null default 120 check (default_rest_seconds between 0 and 900),
+  timer_notifications boolean not null default false,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );

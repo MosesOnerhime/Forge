@@ -93,7 +93,7 @@ function SetupForm() {
     setBusy(true)
     try {
       const client = supabase()
-      const { error: profileError } = await client.from('profiles').upsert({ user_id: user.id, display_name: name.trim() || null, units }, { onConflict: 'user_id' })
+      const { error: profileError } = await client.from('profiles').update({ display_name: name.trim() || null, units }).eq('user_id', user.id)
       if (profileError) throw profileError
       const goalValues = { name: goal.trim(), active: true }
       const goalResult = goalId

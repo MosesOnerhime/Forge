@@ -17,6 +17,9 @@ begin
   if (select count(*) from public.profiles where onboarding_completed_at is null) <> 2 then
     raise exception 'Expected new users to need onboarding';
   end if;
+  if (select count(*) from public.profiles where default_rest_seconds = 120 and timer_notifications = false) <> 2 then
+    raise exception 'Expected default timer preferences for new users';
+  end if;
 end;
 $$;
 
@@ -54,10 +57,15 @@ $$;
 
 -- The owner can complete onboarding without changing another account.
 update public.profiles set onboarding_completed_at = now() where user_id = auth.uid();
+update public.profiles set default_rest_seconds = 90, timer_notifications = true where user_id = auth.uid();
+update public.profiles set display_name = 'First user' where user_id = auth.uid();
 do $$
 begin
   if (select count(*) from public.profiles where onboarding_completed_at is not null) <> 1 then
     raise exception 'Onboarding completion did not persist for the owner';
+  end if;
+  if (select count(*) from public.profiles where default_rest_seconds = 90 and timer_notifications = true) <> 1 then
+    raise exception 'Timer preferences did not persist through a profile edit';
   end if;
 end;
 $$;

@@ -18,6 +18,7 @@
 - The current PWA caches only a static offline message and icon. This is an incomplete implementation of the App Flow's offline state, which asks for previously loaded workouts to remain visible where possible and unsaved changes to say “Waiting to sync.”
 - Keep a development-only design preview for visual QA. Production returns 404 for that route.
 - Track completion of the first-use journey with nullable `profiles.onboarding_completed_at`; new seeded accounts enter the guided setup, while completed accounts open Today. Optional starting measurements and photos can be skipped.
+- Store a per-user default rest duration for newly added exercises and a browser-notification preference on `profiles`. Existing exercises retain their own configured rest. The timer uses the wall-clock deadline so background-tab throttling cannot lengthen the countdown.
 
 ## External inputs needed for release
 

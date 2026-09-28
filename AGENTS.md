@@ -51,6 +51,7 @@ Keep this record current when setup or project state changes.
 - `docs/REQUIREMENT_AUDIT.md` maps the source plan to current evidence. Its first pass found missing first-use flow, exercise-specific history, measurement charts, timer preferences, and meaningful offline behavior. Do not treat passing local checks as release proof.
 - Added exercise-specific logged history and selectable measurement charts. Typecheck, lint, and build passed; these authenticated views still need browser QA. The requirement audit now marks the code as present without claiming live verification.
 - Added guided first-use setup and `profiles.onboarding_completed_at`, with sign-up and confirmation routing and an app-route gate. The disposable PostgreSQL harness now has a reusable Windows runner in `scripts/test_local_db.ps1` and passed after the schema change. Typecheck, lint, tests, and build passed; live Auth, Storage, and responsive onboarding QA remain.
+- Added profile-backed timer preferences and an elapsed-time countdown. The local database harness passed preference defaults and persistence; typecheck, lint, tests, and build passed. Browser notification and background-tab timing need live verification.
 
 ## Application build record (2026-09-28)
 

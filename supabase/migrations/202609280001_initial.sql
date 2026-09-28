@@ -8,6 +8,7 @@ create table public.profiles (
   display_name varchar(100),
   units varchar(10) not null default 'metric' check (units in ('metric', 'imperial')),
   timezone varchar(50) not null default 'UTC',
+  onboarding_completed_at timestamptz,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );

@@ -14,6 +14,9 @@ begin
   if (select count(*) from public.nutrition_targets) <> 2 then
     raise exception 'Expected a nutrition target per user';
   end if;
+  if (select count(*) from public.profiles where onboarding_completed_at is null) <> 2 then
+    raise exception 'Expected new users to need onboarding';
+  end if;
 end;
 $$;
 
@@ -45,6 +48,16 @@ do $$
 begin
   if (select count(*) from public.workout_programs) <> 1 then
     raise exception 'Setup RPC created a duplicate program';
+  end if;
+end;
+$$;
+
+-- The owner can complete onboarding without changing another account.
+update public.profiles set onboarding_completed_at = now() where user_id = auth.uid();
+do $$
+begin
+  if (select count(*) from public.profiles where onboarding_completed_at is not null) <> 1 then
+    raise exception 'Onboarding completion did not persist for the owner';
   end if;
 end;
 $$;

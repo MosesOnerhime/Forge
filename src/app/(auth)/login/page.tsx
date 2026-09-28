@@ -23,14 +23,16 @@ export default function Login() {
         if (error) throw error
         setMessage('Check your email for a password reset link.')
       } else if (mode==='signup') {
-        const {data,error}=await supabase().auth.signUp({email,password,options:{emailRedirectTo:`${window.location.origin}/auth/callback?next=/today`}})
+        const {data,error}=await supabase().auth.signUp({email,password,options:{emailRedirectTo:`${window.location.origin}/auth/callback?next=/onboarding`}})
         if (error) throw error
-        if (data.session) router.push('/today')
+        if (data.session) router.push('/onboarding')
         else setMessage('Check your email to confirm your account, then sign in.')
       } else {
         const {error}=await supabase().auth.signInWithPassword({email,password})
         if (error) throw error
-        router.push('/today');router.refresh()
+        const {data:profile,error:profileError}=await supabase().from('profiles').select('onboarding_completed_at').maybeSingle()
+        if (profileError) throw profileError
+        router.push(profile?.onboarding_completed_at?'/today':'/onboarding');router.refresh()
       }
     } catch (caught) { setError(errorMessage(caught)) } finally { setBusy(false) }
   }

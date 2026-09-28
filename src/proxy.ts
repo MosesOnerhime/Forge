@@ -17,7 +17,7 @@ export async function proxy(request: NextRequest) {
   // getClaims validates the token and refreshes cookies when needed.
   const { data } = await client.auth.getClaims()
   const path = request.nextUrl.pathname
-  const privateRoute = ['/today','/workouts','/nutrition','/progress','/journal','/settings','/goals'].some(prefix => path === prefix || path.startsWith(`${prefix}/`))
+  const privateRoute = ['/today','/workouts','/nutrition','/progress','/journal','/settings','/goals','/onboarding'].some(prefix => path === prefix || path.startsWith(`${prefix}/`))
   if (privateRoute && !data?.claims) {
     const url = request.nextUrl.clone(); url.pathname = '/login'; url.search = ''
     return NextResponse.redirect(url)

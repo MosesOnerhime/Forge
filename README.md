@@ -14,7 +14,7 @@ On this Windows machine, npm registry access may need `$env:NODE_OPTIONS='--use-
 
 ## Checks
 
-Run `npm run typecheck`, `npm run lint`, `npm test`, and `npm run build`. The app can build without Supabase variables, but account flows need a configured database. The local PostgreSQL migration harness is `scripts/local_db_bootstrap.sql` followed by the migration and `scripts/local_db_checks.sql` in a disposable database.
+Run `npm run typecheck`, `npm run lint`, `npm test`, and `npm run build`. The app can build without Supabase variables, but account flows need a configured database. On this Windows machine, run `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test_local_db.ps1` to create a disposable PostgreSQL 16 cluster, apply the migration, run the checks, and remove the cluster. The underlying SQL files are `scripts/local_db_bootstrap.sql`, the migration, and `scripts/local_db_checks.sql`.
 
 The development-only `/design-preview` route shows representative dashboard and set-entry layouts for responsive QA. It returns 404 in a production build.
 The preview uses labeled sample data. Run `node scripts/capture_preview.mjs` while the development server is running to refresh the 1440px desktop and 390px mobile captures under `.impeccable/review/`. The current reviewed captures are saved in `docs/screenshots/`; they do not prove the authenticated routes work.
@@ -32,3 +32,5 @@ The preview uses labeled sample data. Run `node scripts/capture_preview.mjs` whi
 Create separate development and production Supabase projects, apply the migration to both, set the three public environment variables in Vercel, and configure Supabase Auth redirect URLs for each deployed domain. Deploy previews first, verify authentication and private data isolation, then promote to production. Account destinations and credentials are pending, so no remote environment is connected yet.
 
 Progress photos are private Supabase Storage objects served through short-lived signed URLs. The PWA service worker caches only the offline message and icon, never private records.
+
+New accounts are routed through `/onboarding` to set units, a goal, nutrition targets, and optional starting progress. The database migration stores completion in `profiles.onboarding_completed_at`; applying this initial migration to a new Supabase project is required before testing sign-in and setup.

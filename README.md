@@ -31,7 +31,7 @@ The preview uses labeled sample data. Run `node scripts/capture_preview.mjs` whi
 
 Create separate development and production Supabase projects, apply the migration to both, set the three public environment variables in Vercel, and configure Supabase Auth redirect URLs for each deployed domain. Deploy previews first, verify authentication and private data isolation, then promote to production. Account destinations and credentials are pending, so no remote environment is connected yet.
 
-Progress photos are private Supabase Storage objects served through short-lived signed URLs. The PWA service worker caches only the offline page and icon. The session screen saves a small copy of the last loaded workout in browser storage for read-only offline viewing; sign-out or account change clears it. Pending edits do not sync offline yet.
+Progress photos are private Supabase Storage objects served through short-lived signed URLs. The PWA service worker caches only the offline page and icon. The session screen saves a small copy of the last loaded workout in browser storage for read-only offline viewing. Logged sets enter a browser-local queue before upload, show “Waiting to sync” until acknowledged, and retry when the app reconnects or becomes visible. Return using the same browser and do not clear its site data before they sync; signing out discards queued sets after a warning. Other edits, including notes, food, and progress, still require a connection.
 
 New accounts are routed through `/onboarding` to set units, a goal, nutrition targets, and optional starting progress. The database migration stores completion in `profiles.onboarding_completed_at`; applying this initial migration to a new Supabase project is required before testing sign-in and setup.
 

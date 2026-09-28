@@ -17,7 +17,7 @@ export type OfflineWorkout = {
     minReps: number
     maxReps: number
     restSeconds: number
-    sets: { setNumber: number; weightKg: number; reps: number; rir: number | null }[]
+    sets: { setNumber: number; weightKg: number; reps: number; rir: number | null; pending?: boolean }[]
   }[]
 }
 
@@ -42,6 +42,7 @@ export function cacheOfflineWorkout(userId: string, session: Session, items: Ses
         weightKg: Number(set.weight_kg),
         reps: Number(set.reps),
         rir: set.rir,
+        pending: set.pending,
       })),
     })),
   }

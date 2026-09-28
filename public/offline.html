@@ -7,6 +7,7 @@
   <title>Forge · Offline</title>
   <style>
     *{box-sizing:border-box}body{margin:0;min-height:100vh;background:#0b0d10;color:#f5f7fa;font:16px Arial,sans-serif;padding:28px 18px}main{max-width:640px;margin:auto}.brand{font-size:28px;font-weight:900;letter-spacing:-.06em}.brand span{color:#ff6b2c}h1{font-size:30px;margin:36px 0 8px}h2{font-size:20px;margin:0 0 8px}h3{font-size:16px;margin:0 0 8px}p{color:#a7adb7;line-height:1.5}.notice{background:#1d2128;border:1px solid #2b3038;border-radius:12px;padding:14px;margin:20px 0}.card{background:#15181d;border:1px solid #2b3038;border-radius:16px;padding:18px;margin:12px 0}.set{display:flex;justify-content:space-between;gap:12px;border-top:1px solid #2b3038;padding:9px 0}button{background:#ff6b2c;color:#170b06;border:0;border-radius:10px;padding:12px 18px;font-weight:bold;min-height:44px}button:focus-visible{outline:2px solid #ffa62b;outline-offset:3px}[hidden]{display:none!important}
+    .set{flex-wrap:wrap;gap:8px 12px}.pending{width:100%;color:#ffa62b;font-size:13px}
   </style>
 </head>
 <body>
@@ -15,7 +16,7 @@
   <h1>You are offline.</h1>
   <p>Reconnect to sync your account and continue logging.</p>
   <section id="saved" hidden>
-    <div class="notice">Last loaded workout, saved in this browser. Read only until you reconnect.</div>
+    <div class="notice">Last loaded workout, saved in this browser. Read only until you reconnect. Sets marked “Waiting to sync” have not reached your account.</div>
     <h2 id="workout-name"></h2>
     <p id="saved-at"></p>
     <div id="exercises"></div>
@@ -52,6 +53,12 @@
           const imperial = snapshot.units === 'imperial'
           result.textContent = (imperial ? (Number(set.weightKg) * 2.2046226218).toFixed(1) + ' lb' : set.weightKg + ' kg') + ' × ' + set.reps
           line.append(number, result)
+          if (set.pending) {
+            const status = document.createElement('span')
+            status.className = 'pending'
+            status.textContent = 'Waiting to sync'
+            line.appendChild(status)
+          }
           card.appendChild(line)
         })
         list.appendChild(card)

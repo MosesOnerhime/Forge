@@ -188,6 +188,10 @@ The app has six destinations. On mobile, icon-and-label items occupy a fixed, tr
 
 The timer floats above the mobile bar and moves near the desktop lower edge. It uses a warm dark panel, copper outline, distinct shadow, and tabular time readout.
 
+### Pending workout sets
+
+An orange status pill marks a set saved on the device but not yet uploaded. A notice above the session names the pending count and offers a manual retry; completion stays unavailable until those sets sync or are discarded. The standalone offline page uses amber text for the same state. This status must not be styled as a completed server record.
+
 ## Do's and Don'ts
 
 ### Do:

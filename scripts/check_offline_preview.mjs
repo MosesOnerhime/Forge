@@ -9,13 +9,14 @@ try {
   await page.goto(`${origin}/offline.html`)
   const snapshot = {
     version: 1, userId: 'preview-user', sessionId: 'preview-session', name: 'Back + Biceps', status: 'active', units: 'metric', savedAt: '2026-09-28T10:00:00Z',
-    exercises: [{ name: 'Weighted Pull-ups', targetSets: 3, minReps: 6, maxReps: 10, restSeconds: 180, sets: [{ setNumber: 1, weightKg: 10, reps: 8, rir: 2 }] }],
+    exercises: [{ name: 'Weighted Pull-ups', targetSets: 3, minReps: 6, maxReps: 10, restSeconds: 180, sets: [{ setNumber: 1, weightKg: 10, reps: 8, rir: 2, pending: true }] }],
   }
   await page.evaluate(data => localStorage.setItem('forge:offline-workout:v1', JSON.stringify(data)), snapshot)
   await page.reload()
   assert.equal(await page.locator('#saved').isVisible(), true)
   assert.equal(await page.getByText('Weighted Pull-ups').count(), 1)
-  assert.equal(await page.getByText('10 kg × 8').count(), 1)
+  assert.equal(await page.locator('.set strong').textContent(), '10 kg \u00d7 8')
+  assert.equal(await page.getByText('Waiting to sync', { exact: true }).count(), 1)
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true)
   await mkdir('docs/screenshots', { recursive: true })
   await page.screenshot({ path: 'docs/screenshots/offline-mobile.png', fullPage: true })

@@ -8,7 +8,7 @@ import { useAuth } from '@/components/auth-provider'
 import { RestTimer } from '@/components/rest-timer'
 import { supabase } from '@/lib/supabase'
 import { errorMessage, type Session, type SessionExercise, type WorkoutSet, type Exercise } from '@/lib/data'
-import { sessionSummary,setVolume } from '@/lib/metrics'
+import { sessionDurationMinutes,sessionSummary,setVolume } from '@/lib/metrics'
 import { displayValue,storageValue,unitLabel,type Units } from '@/lib/units'
 import { useUnits } from '@/hooks/use-units'
 
@@ -23,6 +23,7 @@ export default function SessionPage() {
   const [items, setItems] = useState<SessionExercise[]>([])
   const [exercises, setExercises] = useState<Exercise[]>([])
   const [previous, setPrevious] = useState<Previous>({})
+  const [historicalBests, setHistoricalBests] = useState<Record<string,number>>({})
   const [timer, setTimer] = useState<number | null>(null)
   const [timerRun, setTimerRun] = useState(0)
   const [error, setError] = useState('')
@@ -48,11 +49,14 @@ export default function SessionPage() {
       const { data: history, error: historyError } = await client.rpc('forge_previous_sets', { p_session_id: id })
       if (historyError) throw historyError
       const map: Previous = {}
+      const bests: Record<string,number> = {}
       for (const row of history ?? []) {
         if (!map[row.exercise_id]) map[row.exercise_id] = []
         map[row.exercise_id].push({ id: `previous-${row.exercise_id}-${row.set_number}`, session_exercise_id: '', set_number: row.set_number, weight_kg: row.weight_kg, reps: row.reps, rir: row.rir, completed: true, completed_at: null })
+        bests[row.exercise_id] = Number(row.best_volume_kg)
       }
       setPrevious(map)
+      setHistoricalBests(bests)
     } catch (caught) { setError(errorMessage(caught)) } finally { setLoading(false) }
   }, [id])
   useEffect(() => { if (user) queueMicrotask(() => { void load() }) }, [user, load])
@@ -98,16 +102,23 @@ export default function SessionPage() {
     else { setTimer(null); await load(); if (status === 'cancelled') router.push('/workouts') }
     setBusy(false)
   }
-  const { sets:completed,volume,prCount:prs } = sessionSummary(items,previous)
+  const { exercises:completedExercises,sets:completed,volume,prCount:prs } = sessionSummary(items,historicalBests)
+  const duration = session ? sessionDurationMinutes(session.started_at,session.completed_at) : null
   return <>
     <Link href="/workouts" className="muted small row" style={{ justifyContent: 'flex-start', marginBottom: 16 }}><ArrowLeft size={16} /> Training</Link>
     <div className="page-head"><div className="eyebrow">{session?.status === 'active' ? 'Session in progress' : session?.status === 'completed' ? 'Session complete' : 'Session'}</div><h1>{session?.workout_days?.name ?? 'Your workout'}</h1><p>{completed} sets logged · {Math.round(displayValue(volume,'weight',units)??0).toLocaleString()} {unitLabel('weight',units)} volume {prs > 0 ? `· ${prs} volume PR${prs > 1 ? 's' : ''}` : ''}</p></div>
     {error && <div className="notice" role="alert" style={{ marginBottom: 16 }}>{error}</div>}
     {loading ? <div className="empty">Loading session…</div> : !session ? <div className="empty">Session not found.</div> : <>
-      <div className="stack">{items.map((item, index) => <ExerciseCard key={item.id} item={item} position={index + 1} previous={previous[item.exercise_id] ?? []} exercises={exercises} units={units} editable={session.status === 'active'} busy={busy} onSave={saveSet} onDelete={deleteSet} onSkip={skip} onSubstitute={substitute} />)}</div>
+      <div className="stack">{items.map((item, index) => <ExerciseCard key={item.id} item={item} position={index + 1} previous={previous[item.exercise_id] ?? []} bestVolume={historicalBests[item.exercise_id] ?? 0} exercises={exercises} units={units} editable={session.status === 'active'} busy={busy} onSave={saveSet} onDelete={deleteSet} onSkip={skip} onSubstitute={substitute} />)}</div>
       <SessionNotes initial={session.notes ?? ''} editable={session.status === 'active'} onSave={saveNotes} />
       {session.status === 'active' && <div className="row wrap" style={{ marginTop: 24 }}><button className="btn primary" disabled={busy} onClick={() => finish('completed')}><Check size={18} /> Finish workout</button><button className="btn danger" disabled={busy} onClick={() => finish('cancelled')}>Cancel session</button></div>}
-      {session.status === 'completed' && <div className="card strong" style={{ marginTop: 24 }}><div className="eyebrow">Work logged</div><h2 style={{ marginTop: 10 }}>{completed} sets. {Math.round(displayValue(volume,'weight',units)??0).toLocaleString()} {unitLabel('weight',units)} volume.</h2>{prs > 0 && <p className="pill green"><Trophy size={14} /> {prs} volume PR{prs > 1 ? 's' : ''}</p>}<p className="muted">The next session will show today’s numbers as your previous performance.</p><Link href="/today" className="btn primary">Back to Today</Link></div>}
+      {session.status === 'completed' && <div className="card strong" style={{ marginTop: 24 }}>
+        <h2>Workout complete.</h2>
+        <p>{duration === null ? 'Duration unavailable' : `${duration} min`} · {completedExercises} exercises · {completed} sets</p>
+        <p>{Math.round(displayValue(volume,'weight',units)??0).toLocaleString()} {unitLabel('weight',units)} volume{prs > 0 ? ` · ${prs} volume PR${prs > 1 ? 's' : ''}` : ''}</p>
+        <p className="muted">The next session will show today’s numbers as your previous performance.</p>
+        <Link href="/today" className="btn primary">Back to Today</Link>
+      </div>}
     </>}
     {timer !== null && <RestTimer key={timerRun} duration={timer} onDismiss={() => setTimer(null)} />}
   </>
@@ -118,14 +129,13 @@ function SessionNotes({ initial, editable, onSave }: { initial: string; editable
   return <section className="card" style={{ marginTop: 16 }}><h3>Session notes</h3>{editable ? <><textarea aria-label="Session notes" value={notes} onChange={e => setNotes(e.target.value)} style={{ marginTop: 12 }} placeholder="Energy, form, equipment, or anything to remember…" /><button className="btn small" style={{ marginTop: 10 }} onClick={() => onSave(notes)}>Save notes</button></> : <p className="muted">{initial || 'No notes recorded.'}</p>}</section>
 }
 
-function ExerciseCard({ item, position, previous, exercises, units, editable, busy, onSave, onDelete, onSkip, onSubstitute }: { item: SessionExercise; position: number; previous: WorkoutSet[]; exercises: Exercise[]; units:Units; editable: boolean; busy: boolean; onSave: (item: SessionExercise, setNumber: number, weight: string, reps: string, rir: string) => Promise<boolean>; onDelete: (set: WorkoutSet) => void; onSkip: (item: SessionExercise) => void; onSubstitute: (item: SessionExercise, exerciseId: string) => void }) {
+function ExerciseCard({ item, position, previous, bestVolume, exercises, units, editable, busy, onSave, onDelete, onSkip, onSubstitute }: { item: SessionExercise; position: number; previous: WorkoutSet[]; bestVolume: number; exercises: Exercise[]; units:Units; editable: boolean; busy: boolean; onSave: (item: SessionExercise, setNumber: number, weight: string, reps: string, rir: string) => Promise<boolean>; onDelete: (set: WorkoutSet) => void; onSkip: (item: SessionExercise) => void; onSubstitute: (item: SessionExercise, exerciseId: string) => void }) {
   const [weight, setWeight] = useState(''), [reps, setReps] = useState(''), [rir, setRir] = useState('2')
   const [editing, setEditing] = useState<number | null>(null), [showSubstitute, setShowSubstitute] = useState(false)
   const next = Math.max(0, ...item.workout_sets.map(set => set.set_number)) + 1
   const setNumber = editing ?? next
   const last = previous.find(set => set.set_number === setNumber) ?? previous[previous.length - 1]
-  const best = Math.max(0, ...previous.map(setVolume))
-  const pr = best > 0 && item.workout_sets.some(set => set.completed && setVolume(set) > best)
+  const pr = bestVolume > 0 && item.workout_sets.some(set => set.completed && setVolume(set) > bestVolume)
   function edit(set: WorkoutSet) { setEditing(set.set_number); setWeight(String(displayValue(set.weight_kg,'weight',units) ?? '')); setReps(String(set.reps ?? '')); setRir(set.rir === null ? '' : String(set.rir)) }
   async function submit(e: FormEvent) { e.preventDefault(); if (await onSave(item, setNumber, weight, reps, rir)) { setEditing(null); setWeight(''); setReps('') } }
   return <section className="card" style={{ opacity: item.skipped ? .6 : 1 }}>

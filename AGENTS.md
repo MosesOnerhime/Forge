@@ -46,6 +46,7 @@ Keep this record current when setup or project state changes.
 - Refreshed the 1440px and 390px development-preview screenshots, saved in `docs/screenshots/`. The preview explicitly labels its sample data. The design reviewer still found a repeated card-label pattern and a food action partly behind the fixed mobile navigation in the initial viewport. Authenticated workout usability at 390px remains unverified without a live Supabase project.
 - Recorded the current visual system in `DESIGN.md` and `.impeccable/design.json`. These documents describe implemented tokens and preserve the unresolved review findings; they do not signal a design sign-off.
 - A later feature audit found missing workout summary duration/exercise count, all-time PR calculation, routine day reassignment, and progress-photo date filtering. `docs/BUILD_STATUS.md` now marks the affected milestones partial.
+- Workout completion now derives duration, completed-exercise count, and all-time set-volume PRs. The updated RPC and its owner isolation passed the disposable PostgreSQL 16 harness; typecheck, lint, tests, and build passed. Authenticated browser QA is still pending.
 
 ## Application build record (2026-09-28)
 

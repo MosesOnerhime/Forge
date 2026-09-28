@@ -75,7 +75,7 @@ select '99999999-9999-4999-8999-999999999999', auth.uid(),
   '88888888-8888-4888-8888-888888888888', id, 1, 3, 6, 10, 180
 from public.exercises where name = 'Weighted Pull-ups' limit 1;
 insert into public.workout_sets (user_id,session_exercise_id,set_number,weight_kg,reps,rir,completed,completed_at)
-values (auth.uid(),'66666666-6666-4666-8666-666666666666',1,10,8,2,true,'2026-09-01 10:10:00+00');
+values (auth.uid(),'66666666-6666-4666-8666-666666666666',1,20,8,2,true,'2026-09-01 10:10:00+00');
 insert into public.workout_sets (user_id,session_exercise_id,set_number,weight_kg,reps,rir,completed,completed_at)
 values (auth.uid(),'99999999-9999-4999-8999-999999999999',1,12,8,2,true,'2026-09-05 10:10:00+00');
 do $$
@@ -85,6 +85,9 @@ begin
   end if;
   if (select weight_kg from public.forge_previous_sets('55555555-5555-4555-8555-555555555555')) <> 12 then
     raise exception 'Previous-performance RPC did not return the latest completed session';
+  end if;
+  if (select best_volume_kg from public.forge_previous_sets('55555555-5555-4555-8555-555555555555')) <> 160 then
+    raise exception 'Previous-performance RPC did not return the all-time best volume';
   end if;
 end;
 $$;

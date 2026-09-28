@@ -392,7 +392,7 @@ grant execute on function public.forge_ensure_user_setup() to authenticated;
 -- Return the most recent completed occurrence of each exercise in a session.
 -- The invoker's RLS and explicit auth.uid() scope keep this account-private.
 create function public.forge_previous_sets(p_session_id uuid)
-returns table (exercise_id uuid, set_number integer, weight_kg numeric, reps integer, rir numeric)
+returns table (exercise_id uuid, set_number integer, weight_kg numeric, reps integer, rir numeric, best_volume_kg numeric)
 language sql stable security invoker set search_path = '' as $$
   with current_exercises as (
     select distinct se.exercise_id, ws.started_at
@@ -408,11 +408,30 @@ language sql stable security invoker set search_path = '' as $$
       and ws.status = 'completed'
       and ws.id <> p_session_id
       and ws.started_at <= current.started_at
+      and exists (
+        select 1 from public.workout_sets completed_set
+        where completed_set.session_exercise_id = se.id
+          and completed_set.user_id = (select auth.uid())
+          and completed_set.completed
+      )
     order by se.exercise_id, ws.started_at desc
+  ), historical_bests as (
+    select se.exercise_id, max(logged_set.weight_kg * logged_set.reps) as best_volume_kg
+    from public.session_exercises se
+    join public.workout_sessions ws on ws.id = se.session_id and ws.user_id = se.user_id
+    join public.workout_sets logged_set on logged_set.session_exercise_id = se.id and logged_set.user_id = se.user_id
+    join current_exercises current on current.exercise_id = se.exercise_id
+    where se.user_id = (select auth.uid())
+      and ws.status = 'completed'
+      and ws.id <> p_session_id
+      and ws.started_at <= current.started_at
+      and logged_set.completed
+    group by se.exercise_id
   )
-  select previous.exercise_id, logged_set.set_number, logged_set.weight_kg, logged_set.reps, logged_set.rir
+  select previous.exercise_id, logged_set.set_number, logged_set.weight_kg, logged_set.reps, logged_set.rir, best.best_volume_kg
   from previous_exercises previous
   join public.workout_sets logged_set on logged_set.session_exercise_id = previous.id and logged_set.user_id = (select auth.uid())
+  join historical_bests best on best.exercise_id = previous.exercise_id
   where logged_set.completed
   order by previous.exercise_id, logged_set.set_number;
 $$;

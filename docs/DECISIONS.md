@@ -15,7 +15,7 @@
 - Use all four weekly lifting days plus Friday's leg day from the source list. A `/` in an exercise name means an acceptable substitution, not two exercises to complete.
 - A user can sign up with email and password. Whether email confirmation is required follows the Supabase development project's setting.
 - Store workout weights and body measurements in metric units, and convert for imperial display and input when selected in Settings.
-- The installable PWA caches only a static offline message and icon. Private records require a network connection.
+- The current PWA caches only a static offline message and icon. This is an incomplete implementation of the App Flow's offline state, which asks for previously loaded workouts to remain visible where possible and unsaved changes to say “Waiting to sync.”
 - Keep a development-only design preview for visual QA. Production returns 404 for that route.
 
 ## External inputs needed for release

@@ -48,6 +48,8 @@ Keep this record current when setup or project state changes.
 - A later feature audit found missing workout summary duration/exercise count, all-time PR calculation, routine day reassignment, and progress-photo date filtering. `docs/BUILD_STATUS.md` now marks the affected milestones partial.
 - Workout completion now derives duration, completed-exercise count, and all-time set-volume PRs. The updated RPC and its owner isolation passed the disposable PostgreSQL 16 harness; typecheck, lint, tests, and build passed. Authenticated browser QA is still pending.
 - Added routine exercise day reassignment and a progress-photo date filter. Typecheck, lint, build, and an owner-scoped routine reassignment in the disposable PostgreSQL 16 harness passed. Browser QA for those authenticated screens remains pending.
+- `docs/REQUIREMENT_AUDIT.md` maps the source plan to current evidence. Its first pass found missing first-use flow, exercise-specific history, measurement charts, timer preferences, and meaningful offline behavior. Do not treat passing local checks as release proof.
+- Added exercise-specific logged history and selectable measurement charts. Typecheck, lint, and build passed; these authenticated views still need browser QA. The requirement audit now marks the code as present without claiming live verification.
 
 ## Application build record (2026-09-28)
 

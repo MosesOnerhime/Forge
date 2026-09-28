@@ -49,6 +49,27 @@ begin
 end;
 $$;
 
+-- A routine exercise can move to a different training day without breaking
+-- the owner scope or the destination's unique ordering.
+do $$
+declare item_id uuid; target_day_id uuid; next_order integer;
+begin
+  select pe.id into item_id
+  from public.program_exercises pe
+  join public.workout_days day on day.id = pe.workout_day_id
+  where day.day_of_week = 1 order by pe.sort_order limit 1;
+  select id into target_day_id from public.workout_days where day_of_week = 3;
+  select coalesce(max(sort_order),0)+1 into next_order
+  from public.program_exercises where workout_day_id = target_day_id;
+  update public.program_exercises
+  set workout_day_id = target_day_id, sort_order = next_order
+  where id = item_id;
+  if not found or (select workout_day_id from public.program_exercises where id = item_id) <> target_day_id then
+    raise exception 'Routine day reassignment failed';
+  end if;
+end;
+$$;
+
 -- Previous-performance RPC must return the latest completed occurrence.
 insert into public.workout_sessions (id,user_id,workout_day_id,started_at,completed_at,status)
 select '44444444-4444-4444-8444-444444444444', auth.uid(), id,

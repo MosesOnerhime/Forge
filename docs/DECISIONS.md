@@ -15,7 +15,7 @@
 - Use all four weekly lifting days plus Friday's leg day from the source list. A `/` in an exercise name means an acceptable substitution, not two exercises to complete.
 - A user can sign up with email and password. Whether email confirmation is required follows the Supabase development project's setting.
 - Store workout weights and body measurements in metric units, and convert for imperial display and input when selected in Settings.
-- The current PWA caches only a static offline message and icon. This is an incomplete implementation of the App Flow's offline state, which asks for previously loaded workouts to remain visible where possible and unsaved changes to say “Waiting to sync.”
+- The service worker caches a static offline page and icon. The last loaded workout is saved as a small browser-local snapshot and shown read-only on that page; it is cleared on explicit sign-out and account change. This meets the previously loaded workout part of the App Flow where possible, but unsaved changes still need a durable “Waiting to sync” queue. Photos, food logs, and other private records are not cached there.
 - Keep a development-only design preview for visual QA. Production returns 404 for that route.
 - Track completion of the first-use journey with nullable `profiles.onboarding_completed_at`; new seeded accounts enter the guided setup, while completed accounts open Today. Optional starting measurements and photos can be skipped.
 - Store a per-user default rest duration for newly added exercises and a browser-notification preference on `profiles`. Existing exercises retain their own configured rest. The timer uses the wall-clock deadline so background-tab throttling cannot lengthen the countdown.

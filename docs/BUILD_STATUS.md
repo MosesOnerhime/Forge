@@ -1,6 +1,6 @@
 # Build status
 
-Last updated: 2026-09-28
+Last updated: 2026-09-29
 
 | Milestone | Status | Evidence / next work |
 | --- | --- | --- |
@@ -9,7 +9,7 @@ Last updated: 2026-09-28
 | Supabase schema and auth | Locally implemented | Migration, RLS, private Storage policies, seed trigger, browser/server auth, sign-up, sign-in, password reset implemented. The updated migration passed the PostgreSQL 16 harness. Live Supabase account verification remains. |
 | Core workout journey | Locally implemented; live unverified | Today, routine/editor, session creation, set edit/delete, substitution, previous performance through `forge_previous_sets`, elapsed-time timer, history, exercise-specific logged history, and completion are present. Settings now stores default rest and notification preferences. Live account and device testing remain. |
 | Nutrition and progress | Locally implemented; live unverified | Saved foods, daily logging, measurements, selectable measurement chart, private photos, date-filtered gallery, comparison, journal, goals, unit conversion, settings, and JSON export are present. Live integration testing remains. |
-| First use and offline | Partially implemented | Guided `/onboarding` now covers profile/units, goal, seeded plan, targets, and optional starting progress, with an account marker and route gate. Live testing remains. Service worker still supplies only a static offline page; loaded workouts and pending writes have no offline state. |
+| First use and offline | Partially implemented | Guided `/onboarding` covers profile/units, goal, seeded plan, targets, and optional starting progress, with an account marker and route gate; live testing remains. The service worker shows the last loaded workout read-only from browser storage when offline. Pending writes still have no sync queue. |
 | Visual QA and accessibility | Partially checked | Mobile 390×844 and desktop 1440×900 development previews inspected after labeling sample data. The design verdict found the repeated card-label pattern and initial-viewport food action placement still open. Authenticated workout browser checks remain. |
 | Preview and production release | Pending accounts | Supabase, Vercel, and GitHub destinations have not been supplied. |
 
@@ -31,3 +31,4 @@ The source did not include exact sets, rep ranges, and rest prescriptions. Seed 
 - 2026-09-28: Added an exercise-specific history route linked from logged exercise cards and made the progress chart switch among body measurements. Typecheck, lint, and production build passed; authenticated data and mobile layout remain unverified.
 - 2026-09-28: Added a guided first-use route, `profiles.onboarding_completed_at`, sign-up/confirmation redirects, and an app-route setup gate. `scripts/test_local_db.ps1` now runs and cleans the disposable PostgreSQL harness; it passed seed, owner marker, RLS, routine move, and previous-performance checks. Typecheck, lint, three unit tests, and build passed. Live Auth and Storage steps remain unverified.
 - 2026-09-28: Added profile timer preferences (default rest for new exercises and browser notifications), Settings controls, and a countdown based on elapsed time so background throttling does not extend rests. The disposable PostgreSQL harness passed preference defaults and persistence; typecheck, lint, tests, and build passed. Notification permission and background timing still need browser/device checks.
+- 2026-09-29: Added a browser-scoped last-workout snapshot for the service worker's offline fallback, cleared on sign-out or account change. The mobile Playwright check proved offline navigation shows the snapshot and escaped user text; `docs/screenshots/offline-mobile.png` records the view. Four unit tests, typecheck, lint, and build passed. This is read-only offline support; unsaved set syncing remains.

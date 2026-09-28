@@ -1,1 +1,63 @@
-<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0b0d10"><title>Forge · Offline</title><style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#0b0d10;color:#f5f7fa;font:16px Arial,sans-serif;padding:24px}main{max-width:420px}b{font-size:30px;letter-spacing:-.06em}b span{color:#ff6b2c}h1{font-size:28px;margin-top:50px}p{color:#a7adb7;line-height:1.5}button{background:#ff6b2c;border:0;border-radius:10px;padding:12px 18px;font-weight:bold}</style><main><b>FORGE<span>.</span></b><h1>You are offline.</h1><p>Reconnect to load your private workout and nutrition records. Your data is not stored in this offline page.</p><button onclick="location.reload()">Try again</button></main></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#0b0d10">
+  <title>Forge · Offline</title>
+  <style>
+    *{box-sizing:border-box}body{margin:0;min-height:100vh;background:#0b0d10;color:#f5f7fa;font:16px Arial,sans-serif;padding:28px 18px}main{max-width:640px;margin:auto}.brand{font-size:28px;font-weight:900;letter-spacing:-.06em}.brand span{color:#ff6b2c}h1{font-size:30px;margin:36px 0 8px}h2{font-size:20px;margin:0 0 8px}h3{font-size:16px;margin:0 0 8px}p{color:#a7adb7;line-height:1.5}.notice{background:#1d2128;border:1px solid #2b3038;border-radius:12px;padding:14px;margin:20px 0}.card{background:#15181d;border:1px solid #2b3038;border-radius:16px;padding:18px;margin:12px 0}.set{display:flex;justify-content:space-between;gap:12px;border-top:1px solid #2b3038;padding:9px 0}button{background:#ff6b2c;color:#170b06;border:0;border-radius:10px;padding:12px 18px;font-weight:bold;min-height:44px}button:focus-visible{outline:2px solid #ffa62b;outline-offset:3px}[hidden]{display:none!important}
+  </style>
+</head>
+<body>
+<main>
+  <div class="brand">FORGE<span>.</span></div>
+  <h1>You are offline.</h1>
+  <p>Reconnect to sync your account and continue logging.</p>
+  <section id="saved" hidden>
+    <div class="notice">Last loaded workout, saved in this browser. Read only until you reconnect.</div>
+    <h2 id="workout-name"></h2>
+    <p id="saved-at"></p>
+    <div id="exercises"></div>
+  </section>
+  <p id="no-snapshot">No workout has been loaded on this device yet. Your private records remain in your account.</p>
+  <button id="retry" type="button">Try again</button>
+</main>
+<script>
+  document.getElementById('retry').addEventListener('click', () => location.reload())
+  try {
+    const raw = localStorage.getItem('forge:offline-workout:v1')
+    const snapshot = raw && JSON.parse(raw)
+    if (snapshot && snapshot.version === 1 && Array.isArray(snapshot.exercises)) {
+      document.getElementById('saved').hidden = false
+      document.getElementById('no-snapshot').hidden = true
+      document.getElementById('workout-name').textContent = String(snapshot.name || 'Workout')
+      document.getElementById('saved-at').textContent = 'Loaded ' + new Date(snapshot.savedAt).toLocaleString()
+      const list = document.getElementById('exercises')
+      snapshot.exercises.slice(0, 40).forEach(exercise => {
+        const card = document.createElement('section')
+        card.className = 'card'
+        const title = document.createElement('h3')
+        title.textContent = String(exercise.name || 'Exercise')
+        card.appendChild(title)
+        const plan = document.createElement('p')
+        plan.textContent = exercise.targetSets + ' sets · ' + exercise.minReps + '–' + exercise.maxReps + ' reps · ' + Math.round(exercise.restSeconds / 60) + ' min rest'
+        card.appendChild(plan)
+        ;(Array.isArray(exercise.sets) ? exercise.sets : []).slice(0, 50).forEach(set => {
+          const line = document.createElement('div')
+          line.className = 'set'
+          const number = document.createElement('span')
+          number.textContent = 'Set ' + set.setNumber
+          const result = document.createElement('strong')
+          const imperial = snapshot.units === 'imperial'
+          result.textContent = (imperial ? (Number(set.weightKg) * 2.2046226218).toFixed(1) + ' lb' : set.weightKg + ' kg') + ' × ' + set.reps
+          line.append(number, result)
+          card.appendChild(line)
+        })
+        list.appendChild(card)
+      })
+    }
+  } catch { /* Storage is unavailable or the snapshot is invalid. */ }
+</script>
+</body>
+</html>

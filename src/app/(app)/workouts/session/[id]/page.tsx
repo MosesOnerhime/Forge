@@ -11,6 +11,7 @@ import { errorMessage, type Session, type SessionExercise, type WorkoutSet, type
 import { sessionDurationMinutes,sessionSummary,setVolume } from '@/lib/metrics'
 import { displayValue,storageValue,unitLabel,type Units } from '@/lib/units'
 import { useUnits } from '@/hooks/use-units'
+import { cacheOfflineWorkout } from '@/lib/offline-workout'
 
 type Previous = Record<string, WorkoutSet[]>
 
@@ -44,9 +45,11 @@ export default function SessionPage() {
       if (catalogResult.error) throw catalogResult.error
       const nextItems = (exerciseResult.data ?? []) as unknown as SessionExercise[]
       nextItems.forEach(item => item.workout_sets.sort((a, b) => a.set_number - b.set_number))
-      setSession(sessionResult.data as unknown as Session)
+      const nextSession = sessionResult.data as unknown as Session
+      setSession(nextSession)
       setItems(nextItems)
       setExercises(catalogResult.data ?? [])
+      if (user) cacheOfflineWorkout(user.id, nextSession, nextItems, units)
       const { data: history, error: historyError } = await client.rpc('forge_previous_sets', { p_session_id: id })
       if (historyError) throw historyError
       const map: Previous = {}
@@ -59,7 +62,7 @@ export default function SessionPage() {
       setPrevious(map)
       setHistoricalBests(bests)
     } catch (caught) { setError(errorMessage(caught)) } finally { setLoading(false) }
-  }, [id])
+  }, [id, user, units])
   useEffect(() => { if (user) queueMicrotask(() => { void load() }) }, [user, load])
   useEffect(() => { if (!user) return; let live = true; void supabase().from('profiles').select('timer_notifications').eq('user_id', user.id).maybeSingle().then(({ data, error:profileError }) => { if (!live) return; if (profileError) setError(profileError.message); else setNotifyRest(data?.timer_notifications ?? false) }); return () => { live = false } }, [user])
 

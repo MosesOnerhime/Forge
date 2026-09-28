@@ -1,6 +1,6 @@
 # Requirement audit
 
-Last checked: 2026-09-28. Source of truth: `SOURCE_SPEC.md`, especially the PRD acceptance criteria, App Flow, TRD, and Implementation Plan. “Code present” means implementation exists in the current repository; it does not mean a signed-in user journey passed.
+Last checked: 2026-09-29. Source of truth: `SOURCE_SPEC.md`, especially the PRD acceptance criteria, App Flow, TRD, and Implementation Plan. “Code present” means implementation exists in the current repository; it does not mean a signed-in user journey passed.
 
 | Requirement | Current evidence | Status / next proof |
 | --- | --- | --- |
@@ -16,7 +16,7 @@ Last checked: 2026-09-28. Source of truth: `SOURCE_SPEC.md`, especially the PRD 
 | Journal, goals, unit conversion, export | Journal, goals, settings, export component, unit tests | Code present. Account data round trip remains untested. |
 | First-use journey | `/onboarding` collects profile, units, goal, targets, optional starting measurements/photo, and displays the seeded plan; app routes check `onboarding_completed_at` | Code present. Real sign-up, confirmation redirect, optional upload, and final redirect need live Supabase testing. |
 | Workout and timer settings | Routine editor, Settings default rest and notification controls, elapsed-time rest timer | Code present. Browser notification permission and background countdown need live device checks. |
-| PWA install and offline behavior | Manifest, service worker, static offline page | Partly present: install and device behavior untested; service worker caches only static offline content. Previously loaded workouts are not available offline, and unsaved changes have no “Waiting to sync” state. |
+| PWA install and offline behavior | Manifest, service worker, offline page, owner-scoped last-workout snapshot cleared on sign-out | Partly present: a browser test proved the service worker shows the last loaded workout read-only while offline, with safe text rendering. Install and device behavior remain untested; unsaved sets have no “Waiting to sync” queue yet. |
 | Mobile UI, accessibility, reliability, performance | Development preview captures; typecheck, lint, build | Partial. Design verdict is `fix`; authenticated workout at 390px, keyboard/touch checks, Lighthouse, slow-network and failure cases remain. |
 | Preview and production release | Local Git commits, `.env.example`, deployment instructions | Pending Supabase, GitHub, and Vercel destinations; no preview URL or production account simulation. Exact workout prescriptions were not supplied. |
 

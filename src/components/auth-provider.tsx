@@ -4,6 +4,7 @@ import { createContext, useContext, useEffect, useState } from 'react'
 import type { User } from '@supabase/supabase-js'
 import { useRouter } from 'next/navigation'
 import { configured, supabase } from '@/lib/supabase'
+import { clearOfflineWorkout, clearOfflineWorkoutForOtherUser } from '@/lib/offline-workout'
 
 const AuthContext = createContext<{ user:User|null; loading:boolean; refresh:()=>Promise<void> }>({ user:null, loading:true, refresh:async()=>{} })
 
@@ -14,6 +15,7 @@ export function AuthProvider({ children, required = false }: { children:React.Re
   async function refresh() {
     if (!configured) { setLoading(false); return }
     const {data:{user:nextUser}} = await supabase().auth.getUser()
+    if (nextUser) clearOfflineWorkoutForOtherUser(nextUser.id)
     setUser(nextUser)
     setLoading(false)
     if (required && !nextUser) router.replace('/login')
@@ -22,7 +24,9 @@ export function AuthProvider({ children, required = false }: { children:React.Re
     // The subscription also catches password-reset and cross-tab sign-out events.
     const task = Promise.resolve().then(refresh)
     if (!configured) return () => { void task }
-    const {data:{subscription}} = supabase().auth.onAuthStateChange((_event,session) => {
+    const {data:{subscription}} = supabase().auth.onAuthStateChange((event,session) => {
+      if (event === 'SIGNED_OUT') clearOfflineWorkout()
+      if (session?.user) clearOfflineWorkoutForOtherUser(session.user.id)
       setUser(session?.user ?? null)
       if (required && !session?.user) router.replace('/login')
     })

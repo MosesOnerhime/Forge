@@ -1,0 +1,10 @@
+.playwright-mcp/
+.impeccable/
+node_modules/
+.next/
+.env
+.env.*
+!.env.example
+*.tsbuildinfo
+coverage/
+.localpg/

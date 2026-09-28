@@ -1,0 +1,117 @@
+-- Run after local_db_bootstrap.sql and the migration, in a disposable DB.
+insert into auth.users (id,email) values
+  ('11111111-1111-4111-8111-111111111111','first@example.test'),
+  ('22222222-2222-4222-8222-222222222222','second@example.test');
+
+do $$
+begin
+  if (select count(*) from public.workout_days) <> 14 then
+    raise exception 'Expected 7 seeded days per user';
+  end if;
+  if (select count(*) from public.program_exercises) <> 70 then
+    raise exception 'Expected 35 seeded exercises per user';
+  end if;
+  if (select count(*) from public.nutrition_targets) <> 2 then
+    raise exception 'Expected a nutrition target per user';
+  end if;
+end;
+$$;
+
+grant usage on schema public, auth, storage to authenticated;
+grant select, insert, update, delete on all tables in schema public to authenticated;
+grant select, insert, update, delete on storage.objects to authenticated;
+alter table storage.objects enable row level security;
+
+set role authenticated;
+set forge.test_user_id = '11111111-1111-4111-8111-111111111111';
+do $$
+begin
+  if (select count(*) from public.workout_days) <> 7 then
+    raise exception 'RLS leaked another user''s workout days';
+  end if;
+  if (select count(*) from public.program_exercises) <> 35 then
+    raise exception 'RLS leaked another user''s exercise plan';
+  end if;
+  if (select count(*) from public.nutrition_targets) <> 1 then
+    raise exception 'RLS leaked another user''s nutrition targets';
+  end if;
+end;
+$$;
+
+-- The app's setup RPC must be safe to call repeatedly.
+select public.forge_ensure_user_setup();
+select public.forge_ensure_user_setup();
+do $$
+begin
+  if (select count(*) from public.workout_programs) <> 1 then
+    raise exception 'Setup RPC created a duplicate program';
+  end if;
+end;
+$$;
+
+-- Previous-performance RPC must return the latest completed occurrence.
+insert into public.workout_sessions (id,user_id,workout_day_id,started_at,completed_at,status)
+select '44444444-4444-4444-8444-444444444444', auth.uid(), id,
+  '2026-09-01 10:00:00+00', '2026-09-01 11:00:00+00', 'completed'
+from public.workout_days where day_of_week = 1 limit 1;
+insert into public.workout_sessions (id,user_id,workout_day_id,started_at,status)
+select '55555555-5555-4555-8555-555555555555', auth.uid(), id,
+  '2026-09-08 10:00:00+00', 'active'
+from public.workout_days where day_of_week = 1 limit 1;
+insert into public.workout_sessions (id,user_id,workout_day_id,started_at,completed_at,status)
+select '88888888-8888-4888-8888-888888888888', auth.uid(), id,
+  '2026-09-05 10:00:00+00', '2026-09-05 11:00:00+00', 'completed'
+from public.workout_days where day_of_week = 1 limit 1;
+insert into public.session_exercises (id,user_id,session_id,exercise_id,sort_order,target_sets,min_reps,max_reps,rest_seconds)
+select '66666666-6666-4666-8666-666666666666', auth.uid(),
+  '44444444-4444-4444-8444-444444444444', id, 1, 3, 6, 10, 180
+from public.exercises where name = 'Weighted Pull-ups' limit 1;
+insert into public.session_exercises (id,user_id,session_id,exercise_id,sort_order,target_sets,min_reps,max_reps,rest_seconds)
+select '77777777-7777-4777-8777-777777777777', auth.uid(),
+  '55555555-5555-4555-8555-555555555555', id, 1, 3, 6, 10, 180
+from public.exercises where name = 'Weighted Pull-ups' limit 1;
+insert into public.session_exercises (id,user_id,session_id,exercise_id,sort_order,target_sets,min_reps,max_reps,rest_seconds)
+select '99999999-9999-4999-8999-999999999999', auth.uid(),
+  '88888888-8888-4888-8888-888888888888', id, 1, 3, 6, 10, 180
+from public.exercises where name = 'Weighted Pull-ups' limit 1;
+insert into public.workout_sets (user_id,session_exercise_id,set_number,weight_kg,reps,rir,completed,completed_at)
+values (auth.uid(),'66666666-6666-4666-8666-666666666666',1,10,8,2,true,'2026-09-01 10:10:00+00');
+insert into public.workout_sets (user_id,session_exercise_id,set_number,weight_kg,reps,rir,completed,completed_at)
+values (auth.uid(),'99999999-9999-4999-8999-999999999999',1,12,8,2,true,'2026-09-05 10:10:00+00');
+do $$
+begin
+  if (select count(*) from public.forge_previous_sets('55555555-5555-4555-8555-555555555555')) <> 1 then
+    raise exception 'Previous-performance RPC did not return the last set';
+  end if;
+  if (select weight_kg from public.forge_previous_sets('55555555-5555-4555-8555-555555555555')) <> 12 then
+    raise exception 'Previous-performance RPC did not return the latest completed session';
+  end if;
+end;
+$$;
+set forge.test_user_id = '22222222-2222-4222-8222-222222222222';
+do $$
+begin
+  if (select count(*) from public.forge_previous_sets('55555555-5555-4555-8555-555555555555')) <> 0 then
+    raise exception 'Previous-performance RPC leaked another user''s session';
+  end if;
+end;
+$$;
+set forge.test_user_id = '11111111-1111-4111-8111-111111111111';
+
+-- Deliberately reference a food belonging to the other user. Composite FKs
+-- must reject it even if a client tries to submit a forged foreign key.
+reset role;
+insert into public.foods (id,user_id,name,serving_description,calories,protein_g,carbs_g,fat_g)
+values ('33333333-3333-4333-8333-333333333333','22222222-2222-4222-8222-222222222222','Other food','1 serving',100,10,10,2);
+set role authenticated;
+do $$
+begin
+  begin
+    insert into public.food_entries (user_id,food_id,logged_date,meal_type,calories,protein_g,carbs_g,fat_g)
+    values ('11111111-1111-4111-8111-111111111111','33333333-3333-4333-8333-333333333333',current_date,'lunch',100,10,10,2);
+    raise exception 'Cross-owner food link was accepted';
+  exception when foreign_key_violation then null;
+  end;
+end;
+$$;
+reset role;

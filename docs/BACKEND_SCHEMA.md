@@ -1,0 +1,534 @@
+# 5. Backend Schema
+
+## Purpose
+
+Define how Forge stores fitness information and how those records relate.
+
+---
+
+## Entities
+
+**profiles**  
+User preferences and profile information.
+
+**goals**  
+Current fitness and physique goals.
+
+**workout_programs**  
+Training programs belonging to a user.
+
+**workout_days**  
+Individual days inside a program.
+
+**exercises**  
+Reusable exercise definitions.
+
+**program_exercises**  
+Exercise prescription inside a specific workout day.
+
+**workout_sessions**  
+An actual completed or active workout.
+
+**session_exercises**  
+Exercises performed during a session.
+
+**workout_sets**  
+Individual sets.
+
+**nutrition_targets**  
+Daily calorie and macro goals.
+
+**foods**  
+Saved foods.
+
+**food_entries**  
+Foods actually consumed.
+
+**body_measurements**  
+Weight and physique measurements.
+
+**progress_photos**  
+Stored progress-image metadata.
+
+**journal_entries**  
+Free-form notes.
+
+---
+
+## Tables
+
+### profiles
+
+```text
+id UUID PK
+user_id UUID UNIQUE NOT NULL
+display_name VARCHAR(100)
+units VARCHAR(10) DEFAULT 'metric'
+timezone VARCHAR(50)
+created_at TIMESTAMPTZ
+updated_at TIMESTAMPTZ
+```
+
+Index:
+
+`user_id`
+
+---
+
+### goals
+
+```text
+id UUID PK
+user_id UUID NOT NULL
+name VARCHAR(100) NOT NULL
+description TEXT
+start_date DATE
+target_date DATE
+active BOOLEAN DEFAULT true
+created_at TIMESTAMPTZ
+```
+
+---
+
+### workout_programs
+
+```text
+id UUID PK
+user_id UUID NOT NULL
+name VARCHAR(150) NOT NULL
+description TEXT
+active BOOLEAN DEFAULT false
+created_at TIMESTAMPTZ
+updated_at TIMESTAMPTZ
+```
+
+---
+
+### workout_days
+
+```text
+id UUID PK
+program_id UUID NOT NULL
+day_of_week SMALLINT
+name VARCHAR(150)
+estimated_minutes_min INTEGER
+estimated_minutes_max INTEGER
+is_rest_day BOOLEAN DEFAULT false
+sort_order INTEGER
+```
+
+---
+
+### exercises
+
+```text
+id UUID PK
+user_id UUID
+name VARCHAR(150) NOT NULL
+primary_muscles TEXT[]
+secondary_muscles TEXT[]
+equipment VARCHAR(100)
+notes TEXT
+created_at TIMESTAMPTZ
+```
+
+---
+
+### program_exercises
+
+```text
+id UUID PK
+workout_day_id UUID NOT NULL
+exercise_id UUID NOT NULL
+sort_order INTEGER NOT NULL
+target_sets INTEGER
+min_reps INTEGER
+max_reps INTEGER
+rest_seconds_min INTEGER
+rest_seconds_max INTEGER
+notes TEXT
+```
+
+---
+
+### workout_sessions
+
+```text
+id UUID PK
+user_id UUID NOT NULL
+workout_day_id UUID
+started_at TIMESTAMPTZ NOT NULL
+completed_at TIMESTAMPTZ
+status VARCHAR(20) DEFAULT 'active'
+notes TEXT
+created_at TIMESTAMPTZ
+```
+
+Index:
+
+`user_id, started_at DESC`
+
+---
+
+### session_exercises
+
+```text
+id UUID PK
+session_id UUID NOT NULL
+exercise_id UUID NOT NULL
+sort_order INTEGER
+notes TEXT
+skipped BOOLEAN DEFAULT false
+```
+
+---
+
+### workout_sets
+
+```text
+id UUID PK
+session_exercise_id UUID NOT NULL
+set_number INTEGER NOT NULL
+weight_kg NUMERIC(6,2)
+reps INTEGER
+rir NUMERIC(3,1)
+completed BOOLEAN DEFAULT false
+completed_at TIMESTAMPTZ
+notes TEXT
+```
+
+Index:
+
+`session_exercise_id, set_number`
+
+---
+
+### nutrition_targets
+
+```text
+id UUID PK
+user_id UUID NOT NULL
+effective_from DATE NOT NULL
+calories INTEGER
+protein_g INTEGER
+carbs_g INTEGER
+fat_g INTEGER
+created_at TIMESTAMPTZ
+```
+
+Initial targets:
+
+- Calories: 2,800–3,000 kcal range.
+- Protein: 160–180g.
+- Fat: approximately 70–90g.
+- Carbohydrates: remaining calories.
+
+The existing diet plan explicitly uses fats around 70–90g/day and fills most remaining calories with carbohydrates.
+
+---
+
+### foods
+
+```text
+id UUID PK
+user_id UUID NOT NULL
+name VARCHAR(150) NOT NULL
+serving_description VARCHAR(100)
+serving_grams NUMERIC
+calories NUMERIC
+protein_g NUMERIC
+carbs_g NUMERIC
+fat_g NUMERIC
+created_at TIMESTAMPTZ
+```
+
+---
+
+### food_entries
+
+```text
+id UUID PK
+user_id UUID NOT NULL
+food_id UUID NOT NULL
+logged_date DATE NOT NULL
+meal_type VARCHAR(30)
+quantity NUMERIC DEFAULT 1
+calories NUMERIC
+protein_g NUMERIC
+carbs_g NUMERIC
+fat_g NUMERIC
+notes TEXT
+created_at TIMESTAMPTZ
+```
+
+Index:
+
+`user_id, logged_date`
+
+---
+
+### body_measurements
+
+```text
+id UUID PK
+user_id UUID NOT NULL
+measured_at DATE NOT NULL
+weight_kg NUMERIC
+waist_cm NUMERIC
+chest_cm NUMERIC
+shoulders_cm NUMERIC
+bicep_left_cm NUMERIC
+bicep_right_cm NUMERIC
+forearm_left_cm NUMERIC
+forearm_right_cm NUMERIC
+thigh_left_cm NUMERIC
+thigh_right_cm NUMERIC
+neck_cm NUMERIC
+calf_left_cm NUMERIC
+calf_right_cm NUMERIC
+notes TEXT
+created_at TIMESTAMPTZ
+```
+
+Index:
+
+`user_id, measured_at DESC`
+
+---
+
+### progress_photos
+
+```text
+id UUID PK
+user_id UUID NOT NULL
+photo_date DATE NOT NULL
+view_type VARCHAR(20)
+storage_path TEXT NOT NULL
+notes TEXT
+created_at TIMESTAMPTZ
+```
+
+`view_type`:
+
+- front
+- side
+- back
+- custom
+
+---
+
+### journal_entries
+
+```text
+id UUID PK
+user_id UUID NOT NULL
+entry_date DATE NOT NULL
+title VARCHAR(200)
+content TEXT NOT NULL
+created_at TIMESTAMPTZ
+updated_at TIMESTAMPTZ
+```
+
+---
+
+## Relationships
+
+```text
+User
+ ├── Profile
+ ├── Goals
+ ├── Workout Programs
+ │     └── Workout Days
+ │           └── Program Exercises
+ │
+ ├── Workout Sessions
+ │     └── Session Exercises
+ │           └── Workout Sets
+ │
+ ├── Nutrition Targets
+ ├── Foods
+ │     └── Food Entries
+ │
+ ├── Body Measurements
+ ├── Progress Photos
+ └── Journal Entries
+```
+
+---
+
+## User ownership
+
+Every user-specific record must ultimately resolve to a Supabase Auth user.
+
+No user can access another user's:
+
+- Workouts.
+- Foods.
+- Measurements.
+- Photos.
+- Goals.
+- Journal.
+- Nutrition information.
+
+---
+
+## Authentication flow
+
+```text
+Sign Up
+  ↓
+Verify Account if required
+  ↓
+Create Profile
+  ↓
+Authenticated Session
+  ↓
+Refresh Token
+  ↓
+Persistent Login
+```
+
+Password reset:
+
+```text
+Forgot Password
+  ↓
+Reset Email
+  ↓
+Secure Reset Link
+  ↓
+New Password
+```
+
+---
+
+## Authorization rules
+
+Supabase Row Level Security must enforce:
+
+**SELECT**
+
+`record.user_id = auth.uid()`
+
+**INSERT**
+
+`new.user_id = auth.uid()`
+
+**UPDATE**
+
+`record.user_id = auth.uid()`
+
+**DELETE**
+
+`record.user_id = auth.uid()`
+
+Child tables must validate ownership through their parent entity.
+
+---
+
+## Data validation
+
+Examples:
+
+- Reps must be ≥0.
+- Weight must be ≥0.
+- RIR should normally remain within 0–10.
+- Calories must be ≥0.
+- Macronutrients must be ≥0.
+- Measurements must be positive.
+- Dates must be valid.
+- Exercise names cannot be blank.
+- Set numbers must be unique within an exercise session.
+- Uploads must be valid supported image types.
+- File-size limits must be enforced.
+- Emails must be unique through authentication.
+
+---
+
+## Retention and deletion
+
+By default, fitness history remains available until the user deletes it.
+
+Users should eventually be able to:
+
+- Delete individual workouts.
+- Delete foods.
+- Delete measurements.
+- Delete photos.
+- Delete journal entries.
+- Export account data.
+- Delete the entire account.
+
+Deleting a progress photo must also remove the associated Storage object.
+
+---
+
+## Migration and seed data
+
+Database migrations must be version controlled.
+
+Initial seed data should include the current Forge workout plan.
+
+### Monday
+
+Back + Biceps + Forearms
+
+- Weighted Pull-ups
+- Chest-Supported Row
+- Lat Pulldown
+- Incline Dumbbell Curl
+- Preacher Curl / Cable Curl
+- Reverse Curl
+- Wrist Curl / Reverse Wrist Curl
+
+### Wednesday
+
+Chest + Shoulders + Triceps
+
+- Incline Barbell / Dumbbell Press
+- Flat Dumbbell Press
+- Cable Lateral Raise
+- Rear Delt Fly
+- Overhead Triceps Extension
+- Cable Pushdown
+- Dips
+
+### Friday
+
+Legs + Abs
+
+- Back Squat
+- Romanian Deadlift
+- Bulgarian Split Squat
+- Leg Curl
+- Standing Calf Raise
+- Hanging Leg Raise
+- Cable Crunch
+
+### Saturday
+
+Back + Biceps + Forearms
+
+- Chin-up / Neutral-Grip Pull-up
+- Barbell Row
+- Single-Arm Cable Row
+- EZ-Bar Curl
+- Hammer Curl
+- Reverse Curl
+- Farmer's Carry / Wrist Roller
+
+### Sunday
+
+Chest + Shoulders + Triceps
+
+- Incline Dumbbell Press
+- Upright Dips
+- Cable / Machine Fly
+- Cable Lateral Raise
+- Reverse Pec Deck
+- Skull Crusher / Overhead Cable Extension
+- Rope Pushdown
+
+The exact sets, rep ranges and rest times should be seeded from the existing workout specification rather than re-entered manually.  
+
+---

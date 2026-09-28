@@ -1,0 +1,12 @@
+model = "gpt-5.6-sol"
+
+[mcp_servers.playwright]
+command = "npx"
+args = ["-y", "@playwright/mcp@latest", "--browser", "msedge"]
+startup_timeout_sec = 30
+
+[mcp_servers.playwright.env]
+NODE_OPTIONS = "--use-system-ca"
+
+[mcp_servers.figma]
+url = "https://mcp.figma.com/mcp"

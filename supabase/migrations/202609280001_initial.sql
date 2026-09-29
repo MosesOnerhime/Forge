@@ -392,6 +392,60 @@ $$;
 revoke all on function public.forge_ensure_user_setup() from public, anon;
 grant execute on function public.forge_ensure_user_setup() to authenticated;
 
+-- Starting a session and copying its exercise plan must commit together.
+-- The partial unique index above makes concurrent starts converge on one session.
+create function public.forge_start_workout(p_day_id uuid)
+returns uuid language plpgsql security invoker set search_path = '' as $$
+declare
+  v_user_id uuid := (select auth.uid());
+  v_session_id uuid;
+  v_copied integer;
+begin
+  if v_user_id is null then raise exception 'Authentication required'; end if;
+
+  select id into v_session_id
+  from public.workout_sessions
+  where user_id = v_user_id and status = 'active';
+  if v_session_id is not null then return v_session_id; end if;
+
+  if not exists (
+    select 1 from public.workout_days day
+    join public.workout_programs program on program.id = day.program_id and program.user_id = day.user_id
+    where day.id = p_day_id and day.user_id = v_user_id
+      and not day.is_rest_day and program.active
+  ) then
+    raise exception 'Choose a training day in your active program';
+  end if;
+
+  begin
+    insert into public.workout_sessions (user_id, workout_day_id)
+    values (v_user_id, p_day_id)
+    returning id into v_session_id;
+  exception when unique_violation then
+    select id into v_session_id
+    from public.workout_sessions
+    where user_id = v_user_id and status = 'active';
+    if v_session_id is null then raise; end if;
+    return v_session_id;
+  end;
+
+  insert into public.session_exercises (
+    user_id, session_id, exercise_id, program_exercise_id, sort_order,
+    target_sets, min_reps, max_reps, rest_seconds, notes
+  )
+  select v_user_id, v_session_id, plan.exercise_id, plan.id, plan.sort_order,
+    plan.target_sets, plan.min_reps, plan.max_reps, plan.rest_seconds_min, plan.notes
+  from public.program_exercises plan
+  where plan.user_id = v_user_id and plan.workout_day_id = p_day_id
+  order by plan.sort_order;
+  get diagnostics v_copied = row_count;
+  if v_copied = 0 then raise exception 'This day has no exercises. Add them before starting'; end if;
+  return v_session_id;
+end;
+$$;
+revoke all on function public.forge_start_workout(uuid) from public, anon;
+grant execute on function public.forge_start_workout(uuid) to authenticated;
+
 -- Return the most recent completed occurrence of each exercise in a session.
 -- The invoker's RLS and explicit auth.uid() scope keep this account-private.
 create function public.forge_previous_sets(p_session_id uuid)

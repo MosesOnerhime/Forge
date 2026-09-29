@@ -11,4 +11,4 @@ export type Measurement = { id:string; measured_at:string; weight_kg:number|null
 export type ProgressPhoto = { id:string; photo_date:string; view_type:string; storage_path:string; notes:string|null; signedUrl?:string }
 export type JournalEntry = { id:string; entry_date:string; title:string|null; content:string; created_at:string }
 
-export function errorMessage(error: unknown) { return error instanceof Error ? error.message : 'Something went wrong. Please try again.' }
+export function errorMessage(error: unknown) { if(error instanceof Error)return error.message; if(error&&typeof error==='object'&&'message'in error&&typeof error.message==='string')return error.message; return 'Something went wrong. Please try again.' }

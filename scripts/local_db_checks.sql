@@ -134,6 +134,56 @@ begin
 end;
 $$;
 set forge.test_user_id = '22222222-2222-4222-8222-222222222222';
+-- Start is atomic and idempotent, including across a duplicate request.
+do $$
+declare training_day_id uuid; rest_day_id uuid; empty_day_id uuid; first_session uuid; second_session uuid;
+begin
+  select id into training_day_id from public.workout_days where day_of_week = 1;
+  select id into rest_day_id from public.workout_days where day_of_week = 2;
+  select id into empty_day_id from public.workout_days where day_of_week = 3;
+  begin
+    perform public.forge_start_workout(rest_day_id);
+    raise exception 'Rest day was accepted';
+  exception when raise_exception then
+    if sqlerrm <> 'Choose a training day in your active program' then raise; end if;
+  end;
+  first_session := public.forge_start_workout(training_day_id);
+  second_session := public.forge_start_workout(training_day_id);
+  if first_session is null or second_session <> first_session then
+    raise exception 'Duplicate start created another session';
+  end if;
+  if (select count(*) from public.session_exercises where session_id = first_session)
+      <> (select count(*) from public.program_exercises where workout_day_id = training_day_id) then
+    raise exception 'Workout start did not copy the full plan';
+  end if;
+  begin
+    insert into public.workout_sessions (user_id,workout_day_id) values (auth.uid(),training_day_id);
+    raise exception 'Duplicate active session was accepted';
+  exception when unique_violation then null;
+  end;
+  -- Roll back this probe's temporary plan deletion after proving that an
+  -- empty plan leaves no half-created session behind.
+  begin
+    update public.workout_sessions set status = 'completed', completed_at = now() where id = first_session;
+    delete from public.program_exercises where workout_day_id = empty_day_id;
+    begin
+      perform public.forge_start_workout(empty_day_id);
+      raise exception 'Empty plan was accepted';
+    exception when raise_exception then
+      if sqlerrm <> 'This day has no exercises. Add them before starting' then raise; end if;
+    end;
+    if exists (select 1 from public.workout_sessions where status = 'active') then
+      raise exception 'Failed start left an active session';
+    end if;
+    raise exception 'Empty-plan probe complete';
+  exception when raise_exception then
+    if sqlerrm <> 'Empty-plan probe complete' then raise; end if;
+  end;
+  if (select status from public.workout_sessions where id = first_session) <> 'active' then
+    raise exception 'Probe did not restore the prior active session';
+  end if;
+end;
+$$;
 do $$
 begin
   if (select count(*) from public.forge_previous_sets('55555555-5555-4555-8555-555555555555')) <> 0 then

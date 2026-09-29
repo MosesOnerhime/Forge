@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Check, ArrowLeft, Plus, Trash, Timer, PencilSimple, Trophy } from '@phosphor-icons/react'
 import { useAuth } from '@/components/auth-provider'
+import { WorkoutReferenceVideo } from '@/components/workout-reference-video'
 import { RestTimer } from '@/components/rest-timer'
 import { supabase } from '@/lib/supabase'
 import { errorMessage, type Session, type SessionExercise, type WorkoutSet, type Exercise } from '@/lib/data'
@@ -185,6 +186,7 @@ export default function SessionPage() {
     {syncError && <div className="notice" role="alert" style={{ marginBottom: 16 }}>{syncError}</div>}
     {sessionPending.length > 0 && <div className="notice" role="status" style={{ marginBottom: 16 }}><strong>Waiting to sync.</strong> {sessionPending.length} set{sessionPending.length === 1 ? '' : 's'} saved on this device. Do not clear site data before they upload.<button className="btn small" type="button" disabled={busy || !online} onClick={retrySync} style={{ marginLeft: 12 }}>Retry now</button></div>}
     {loading ? <div className="empty">Loading session…</div> : !session ? <div className="empty">Session not found.</div> : <>
+      {user && session.workout_day_id && <WorkoutReferenceVideo key={`${user.id}:${session.workout_day_id}`} dayId={session.workout_day_id} dayName={session.workout_days?.name ?? 'this workout'} userId={user.id} />}
       <div className="stack">{displayItems.map((item, index) => <ExerciseCard key={item.id} item={item} position={index + 1} previous={previous[item.exercise_id] ?? []} bestVolume={historicalBests[item.exercise_id] ?? 0} exercises={exercises} units={units} editable={session.status === 'active'} busy={busy} onSave={saveSet} onDelete={deleteSet} onSkip={skip} onSubstitute={substitute} />)}</div>
       <SessionNotes initial={session.notes ?? ''} editable={session.status === 'active'} busy={busy} onSave={saveNotes} />
       {session.status === 'active' && <div className="row wrap" style={{ marginTop: 24 }}><button className="btn primary" disabled={busy || sessionPending.length > 0} onClick={() => finish('completed')}><Check size={18} /> Finish workout</button><button className="btn danger" disabled={busy || sessionPending.length > 0} onClick={() => finish('cancelled')}>Cancel session</button></div>}

@@ -163,6 +163,8 @@ Every user-owned database record contains a `user_id`.
 
 Supabase Row Level Security prevents users from reading or modifying another user's records.
 
+Workout reference videos use a separate private Storage bucket and an owner-scoped metadata table linked to `workout_days`. The browser uploads MP4/WebM files in resumable chunks, capped at 50 MiB, and requests a time-limited signed URL when playback begins. Storage paths include the owner ID and workout day ID; RLS prevents another account from listing, inserting, or deleting them.
+
 ---
 
 ### Security and privacy
@@ -173,6 +175,7 @@ Forge contains potentially sensitive personal information including:
 - Body measurements.
 - Nutrition.
 - Progress photographs.
+- Workout reference videos.
 - Workout history.
 - Personal notes.
 

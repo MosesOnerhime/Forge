@@ -201,6 +201,8 @@ Breakpoints:
 
 Workout screens should remain relatively narrow even on desktop because fast vertical interaction is more useful than extremely wide layouts.
 
+An optional workout reference video should stay secondary to set logging. Show its name and a clear Watch action; load the player only when the user asks. Put upload and replacement controls with the selected day in Edit routine, and show upload progress without blocking the exercise list.
+
 ---
 
 ### Screen notes

@@ -20,6 +20,12 @@ begin
   if (select count(*) from public.profiles where default_rest_seconds = 120 and timer_notifications = false) <> 2 then
     raise exception 'Expected default timer preferences for new users';
   end if;
+  if not exists (
+    select 1 from storage.buckets
+    where id = 'workout-reference-videos' and not public
+      and file_size_limit = 52428800
+      and allowed_mime_types = array['video/mp4', 'video/webm']
+  ) then raise exception 'Private workout video bucket is missing or misconfigured'; end if;
 end;
 $$;
 
@@ -313,10 +319,17 @@ insert into public.body_measurements (user_id, measured_at, weight_kg)
 select id, current_date, 75 from auth.users;
 insert into public.progress_photos (user_id, photo_date, view_type, storage_path)
 select id, current_date, 'front', id::text || '/rls-probe.jpg' from auth.users;
+insert into public.workout_reference_videos
+  (user_id, workout_day_id, storage_path, original_name, mime_type, file_size_bytes)
+select day.user_id, day.id, day.user_id::text || '/' || day.id::text || '/rls-probe.mp4',
+  'RLS probe.mp4', 'video/mp4', 1024
+from public.workout_days day where day.day_of_week = 1;
 insert into public.journal_entries (user_id, entry_date, content)
 select id, current_date, 'RLS probe entry' from auth.users;
 insert into storage.objects (bucket_id, name)
 select 'progress-photos', id::text || '/rls-probe.jpg' from auth.users;
+insert into storage.objects (bucket_id, name)
+select 'workout-reference-videos', storage_path from public.workout_reference_videos;
 
 set role authenticated;
 set forge.test_user_id = '11111111-1111-4111-8111-111111111111';
@@ -327,7 +340,7 @@ begin
     'profiles', 'goals', 'workout_programs', 'workout_days', 'exercises',
     'program_exercises', 'workout_sessions', 'session_exercises', 'workout_sets',
     'nutrition_targets', 'foods', 'food_entries', 'body_measurements',
-    'progress_photos', 'journal_entries'
+    'progress_photos', 'workout_reference_videos', 'journal_entries'
   ] loop
     if not exists (
       select 1 from pg_class relation
@@ -360,14 +373,48 @@ begin
   if (select count(*) from storage.objects where bucket_id = 'progress-photos') <> 1 then
     raise exception 'Private Storage read isolation failed';
   end if;
+  if (select count(*) from storage.objects where bucket_id = 'workout-reference-videos') <> 1 then
+    raise exception 'Private workout video read isolation failed';
+  end if;
   delete from storage.objects where name = '22222222-2222-4222-8222-222222222222/rls-probe.jpg';
   get diagnostics affected = row_count;
   if affected <> 0 then raise exception 'Private Storage delete isolation failed'; end if;
+  delete from storage.objects where bucket_id = 'workout-reference-videos'
+    and name like '22222222-2222-4222-8222-222222222222/%';
+  get diagnostics affected = row_count;
+  if affected <> 0 then raise exception 'Private workout video delete isolation failed'; end if;
   begin
     insert into storage.objects (bucket_id, name)
     values ('progress-photos', '22222222-2222-4222-8222-222222222222/forged.jpg');
     raise exception 'Private Storage accepted a forged-owner insert';
   exception when insufficient_privilege then null;
+  end;
+  begin
+    insert into storage.objects (bucket_id, name)
+    values ('workout-reference-videos', '22222222-2222-4222-8222-222222222222/forged/video.mp4');
+    raise exception 'Private workout video bucket accepted a forged-owner insert';
+  exception when insufficient_privilege then null;
+  end;
+end;
+$$;
+do $$
+declare foreign_day_id uuid;
+begin
+  perform set_config('forge.test_user_id', '22222222-2222-4222-8222-222222222222', true);
+  select id into foreign_day_id from public.workout_days where day_of_week = 1;
+  delete from public.workout_reference_videos where workout_day_id = foreign_day_id;
+  perform set_config('forge.test_user_id', '11111111-1111-4111-8111-111111111111', true);
+  if foreign_day_id is null then raise exception 'Cross-owner video fixture is missing'; end if;
+  begin
+    insert into public.workout_reference_videos
+      (user_id, workout_day_id, storage_path, original_name, mime_type, file_size_bytes)
+    values (
+      '11111111-1111-4111-8111-111111111111', foreign_day_id,
+      '11111111-1111-4111-8111-111111111111/' || foreign_day_id::text || '/forged.mp4',
+      'forged.mp4', 'video/mp4', 1024
+    );
+    raise exception 'Cross-owner workout video attachment was accepted';
+  exception when foreign_key_violation then null;
   end;
 end;
 $$;

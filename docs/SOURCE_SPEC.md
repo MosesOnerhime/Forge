@@ -2152,3 +2152,9 @@ The main development principle for Forge is:
 **Logging should always be faster than thinking about logging.**
 
 If entering workout or nutrition information becomes tedious, the feature should be simplified rather than adding more complexity.
+
+---
+
+## User addendum (2026-09-29)
+
+The original supplied specification above is preserved. The user subsequently added: “Also make it so that I can upload a reference video for each workout. And update all docs to reflect this.” The working implementation attaches one private reference video to each scheduled workout day; clarification is pending on whether the user also wants a video for each individual exercise.

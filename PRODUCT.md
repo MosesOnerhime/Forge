@@ -6,6 +6,7 @@ Forge is a private gym, nutrition, and physique progress tracker for someone fol
 
 - A signed-in user sees today's scheduled workout or recovery day immediately.
 - During training, the user sees previous performance beside the current set, logs weight, reps, and RIR quickly, and gets an automatic rest timer.
+- The user can save a private reference video for a scheduled workout and open it during that workout without interrupting set logging.
 - The user logs repeat foods, monitors daily macros, records body measurements and photos, and reviews change over time.
 - Every user owns their data. The architecture allows separate accounts, even though initial use is personal.
 

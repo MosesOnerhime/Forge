@@ -180,6 +180,8 @@ Build in this order:
 - Reorder exercises.
 - Change sets/reps/rest.
 - Change training day.
+- Upload, replace, play, and remove one private reference video per training day.
+- Show that video on demand during a workout session.
 
 ---
 
@@ -201,6 +203,7 @@ Test:
 - Image uploads.
 - Large images.
 - Deleted images.
+- Video type/size validation, replacement cleanup, private playback, and deleted videos.
 - Slow networks.
 - Empty states.
 - Rest days.

@@ -202,6 +202,10 @@ The timer floats above the mobile bar and moves near the desktop lower edge. It 
 
 An orange status pill marks a set saved on the device but not yet uploaded. A notice above the session names the pending count and offers a manual retry; completion stays unavailable until those sets sync or are discarded. The standalone offline page uses amber text for the same state. This status must not be styled as a completed server record.
 
+### Workout reference video
+
+The selected training day has an optional reference-video card in Edit routine. It accepts MP4 or WebM up to 50 MiB, shows upload progress, and allows replacement or removal. A session shows the saved filename and a Watch action; the player loads only after that action so it does not compete with set logging or fetch media on every session open. Playback uses a time-limited private link. The authenticated layout still needs mobile and desktop browser QA.
+
 ## Do's and Don'ts
 
 ### Do:

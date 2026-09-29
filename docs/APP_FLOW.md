@@ -69,6 +69,7 @@ Displays:
 - RIR.
 - Rest timer.
 - Notes.
+- An optional reference video for the scheduled workout, opened on demand.
 
 ---
 
@@ -86,6 +87,7 @@ Displays:
 - Rep ranges.
 - Rest periods.
 - Exercise order.
+- Upload, replace, play, and remove the selected training day's reference video.
 
 ---
 
@@ -232,6 +234,19 @@ Finish Workout
 Workout Summary
   ↓
 Today
+```
+
+---
+
+## Workout reference video journey
+
+```text
+Edit routine
+  -> Select training day
+  -> Choose MP4 or WebM video
+  -> Upload and save privately
+  -> Open that workout session
+  -> Watch reference on demand
 ```
 
 ---

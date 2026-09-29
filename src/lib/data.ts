@@ -9,6 +9,7 @@ export type Food = { id:string; name:string; serving_description:string; serving
 export type FoodEntry = { id:string; food_id:string; logged_date:string; meal_type:string; quantity:number; calories:number; protein_g:number; carbs_g:number; fat_g:number; foods?:{name:string;serving_description:string}|null }
 export type Measurement = { id:string; measured_at:string; weight_kg:number|null; waist_cm:number|null; chest_cm:number|null; shoulders_cm:number|null; bicep_left_cm:number|null; bicep_right_cm:number|null; forearm_left_cm:number|null; forearm_right_cm:number|null; thigh_left_cm:number|null; thigh_right_cm:number|null; neck_cm:number|null; calf_left_cm:number|null; calf_right_cm:number|null; notes:string|null }
 export type ProgressPhoto = { id:string; photo_date:string; view_type:string; storage_path:string; notes:string|null; signedUrl?:string }
+export type WorkoutReferenceVideo = { id:string; workout_day_id:string; storage_path:string; original_name:string; mime_type:string; file_size_bytes:number; created_at:string }
 export type JournalEntry = { id:string; entry_date:string; title:string|null; content:string; created_at:string }
 
 export function errorMessage(error: unknown) { if(error instanceof Error)return error.message; if(error&&typeof error==='object'&&'message'in error&&typeof error.message==='string')return error.message; return 'Something went wrong. Please try again.' }

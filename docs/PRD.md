@@ -126,6 +126,7 @@ The system should also support the current progressive-overload approach: improv
 | Personal Goals | Store current physique and performance goals | P1 |
 | Exercise PR Detection | Identify new personal bests | P1 |
 | Routine Editing | Add, remove and reorder exercises | P1 |
+| Workout Reference Video | Upload and watch one private technique or overview video for each scheduled workout day | P1 |
 | PWA Installation | Install Forge on mobile like an app | P1 |
 | Data Export | Export workout and progress information | P2 |
 | Multiple Training Programs | Switch between different programs | P2 |
@@ -176,6 +177,8 @@ As a user, I want to record RIR so I can track training intensity.
 
 As a user, I want to substitute an exercise when equipment is unavailable without destroying the original routine.
 
+As a user, I want to upload a reference video for a scheduled workout and watch it during the session without leaving Forge.
+
 **Nutrition**
 
 As a user, I want to log food so I can monitor calories and protein.
@@ -225,6 +228,12 @@ As a user, I want to write quick notes about training, diet, injuries or perform
 **Given** that an exercise has a configured rest period,  
 **when** the user completes a working set,  
 **then** the appropriate rest timer automatically begins.
+
+#### Workout reference video
+
+**Given** that the user has saved a supported video for a training day,
+**when** they open that workout session,
+**then** they can play the private video in Forge. Replacing or removing it must not alter the exercise plan or past set logs.
 
 #### Previous performance
 

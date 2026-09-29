@@ -1,4 +1,4 @@
-"""Keep the six source specification documents in sync with the pasted brief."""
+"""Create the six original specification documents without overwriting later edits."""
 
 from pathlib import Path
 import re
@@ -17,7 +17,10 @@ DESTINATIONS = {
 
 
 def main() -> None:
-    source = SOURCE.read_text(encoding="utf-8")
+    source = SOURCE.read_text(encoding="utf-8").split("\n## User addendum (", 1)[0]
+    existing = [name for name in DESTINATIONS.values() if (SOURCE.parent / name).exists()]
+    if existing:
+        raise FileExistsError(f"Refusing to overwrite edited documents: {', '.join(existing)}")
     markers = list(re.finditer(r"(?m)^#{1,2} ([1-6])\. ", source))
     found = [int(match.group(1)) for match in markers]
     if found != list(DESTINATIONS):

@@ -317,6 +317,24 @@ created_at TIMESTAMPTZ
 
 ---
 
+### workout_reference_videos
+
+```text
+id UUID PK
+user_id UUID NOT NULL
+workout_day_id UUID NOT NULL UNIQUE
+storage_path TEXT NOT NULL UNIQUE
+original_name VARCHAR(255) NOT NULL
+mime_type VARCHAR(20) NOT NULL (video/mp4 or video/webm)
+file_size_bytes INTEGER NOT NULL (1 through 52,428,800)
+created_at TIMESTAMPTZ
+updated_at TIMESTAMPTZ
+```
+
+The `(workout_day_id, user_id)` foreign key must point to a day owned by the same user. The Storage path starts with that user's ID and the workout day ID. The private `workout-reference-videos` bucket accepts only MP4/WebM files up to 50 MiB. Playback uses short-lived signed URLs.
+
+---
+
 ### journal_entries
 
 ```text
@@ -440,6 +458,7 @@ Examples:
 - Exercise names cannot be blank.
 - Set numbers must be unique within an exercise session.
 - Uploads must be valid supported image types.
+- Workout reference uploads must be supported MP4/WebM files within the private bucket's size limit.
 - File-size limits must be enforced.
 - Emails must be unique through authentication.
 
@@ -460,6 +479,8 @@ Users should eventually be able to:
 - Delete the entire account.
 
 Deleting a progress photo must also remove the associated Storage object.
+
+Replacing or deleting a workout reference video must remove the superseded private Storage object; a failed cleanup stays visible for retry. The account JSON export includes `workout_reference_videos` rows but does not embed the private video files.
 
 ---
 

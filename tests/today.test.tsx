@@ -100,6 +100,15 @@ describe('Today dashboard', () => {
     expect([...page.querySelectorAll('button')].some(button => button.textContent?.includes('Start workout'))).toBe(false)
   })
 
+  it('does not show another account’s nutrition goals when no target is saved', async () => {
+    responses.nutrition_targets = { data: null, error: null }
+    const page = await renderToday()
+    expect(page.textContent).toContain('kcal logged')
+    expect(page.textContent).toContain('Set your daily targets')
+    expect(page.textContent).not.toContain('/ 2900 kcal')
+    expect(page.textContent).not.toContain('/ 170 g')
+  })
+
   it('shows a failed plan query instead of leaving a loading message', async () => {
     responses.workout_programs = { data: null, error: new Error('Plan query failed') }
     const page = await renderToday()

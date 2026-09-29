@@ -7,7 +7,7 @@ import Nutrition from '../src/app/(app)/nutrition/page'
 type FoodEntry = { id: string; food_id: string; logged_date: string; meal_type: string; quantity: number; calories: number; protein_g: number; carbs_g: number; fat_g: number; foods: { name: string; serving_description: string } }
 const authUser = vi.hoisted(() => ({ id: 'user-a' }))
 const food = { id: 'food-a', name: 'Oats', serving_description: '1 bowl', serving_grams: 100, calories: 200, protein_g: 10, carbs_g: 30, fat_g: 4 }
-const store: { entries: FoodEntry[]; failInsert: boolean; inserted: Record<string, unknown> | null } = { entries: [], failInsert: false, inserted: null }
+const store: { entries: FoodEntry[]; failInsert: boolean; inserted: Record<string, unknown> | null; target: { calories: number; protein_g: number; carbs_g: number; fat_g: number } | null } = { entries: [], failInsert: false, inserted: null, target: { calories: 2900, protein_g: 170, carbs_g: 375, fat_g: 80 } }
 
 class Query {
   constructor(private table: string) {}
@@ -18,7 +18,7 @@ class Query {
   limit() { return this }
   maybeSingle() { return this.read() }
   private read() {
-    if (this.table === 'nutrition_targets') return Promise.resolve({ data: { calories: 2900, protein_g: 170, carbs_g: 375, fat_g: 80 }, error: null })
+    if (this.table === 'nutrition_targets') return Promise.resolve({ data: store.target, error: null })
     if (this.table === 'foods') return Promise.resolve({ data: [food], error: null })
     if (this.table === 'food_entries') return Promise.resolve({ data: [...store.entries], error: null })
     throw new Error(`No fixture for ${this.table}`)
@@ -60,6 +60,7 @@ beforeEach(() => {
   store.entries = []
   store.inserted = null
   store.failInsert = false
+  store.target = { calories: 2900, protein_g: 170, carbs_g: 375, fat_g: 80 }
 })
 
 afterEach(async () => {
@@ -91,5 +92,14 @@ describe('Nutrition logging', () => {
     store.failInsert = false
     await act(async () => { page.querySelector('form')!.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true })) })
     expect(store.entries).toHaveLength(1)
+  })
+
+  it('shows only logged amounts when the account has no targets', async () => {
+    store.target = null
+    const page = await renderNutrition()
+    expect(page.textContent).toContain('No daily target set')
+    expect(page.textContent).toContain('Set your targets')
+    expect(page.textContent).not.toContain('2900')
+    expect(page.textContent).not.toContain('0 g remaining')
   })
 })

@@ -115,14 +115,14 @@ export default function Today() {
   const date = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
 
   return <>
-    <div className="page-head"><div className="eyebrow">{date}</div><h1>Today starts here.</h1><p>One clear view of the work ahead.</p></div>
+    <div className="page-head today-head"><div className="eyebrow">{date}</div><h1>Today starts here.</h1><p>One clear view of the work ahead.</p></div>
     {error && <div className="notice" role="alert">{error}</div>}
     <div className="grid-2">
       <section className="card strong">
         <div className="row"><div className="eyebrow">Training plan</div><Barbell size={24} color="var(--accent)" /></div>
-        <h2 style={{ fontSize: 30, marginTop: 28 }}>{day?.is_rest_day ? 'Recovery day' : day?.name ?? (loading ? 'Loading your plan…' : 'Plan unavailable')}</h2>
+        <h2 style={{ fontSize: 30, marginTop: 24 }}>{day?.is_rest_day ? 'Recovery day' : day?.name ?? (loading ? 'Loading your plan…' : 'Plan unavailable')}</h2>
         <p className="muted">{day?.is_rest_day ? 'Rest, eat well, and come back stronger.' : day ? `${planned.length} exercises · ${day.estimated_minutes_min}–${day.estimated_minutes_max} min` : 'Open your routine to check the schedule.'}</p>
-        <div className="row wrap" style={{ marginTop: 30 }}>
+        <div className="row wrap" style={{ marginTop: 20 }}>
           {active
             ? <button className="btn primary" onClick={() => router.push(`/workouts/session/${active.id}`)}>Resume workout <ArrowRight size={18} /></button>
             : day && !day.is_rest_day && planned.length > 0
@@ -130,19 +130,19 @@ export default function Today() {
               : <Link className="btn" href="/workouts/routine">View routine <ArrowRight size={18} /></Link>}
           <Link href="/workouts" className="muted small">Weekly plan →</Link>
         </div>
-        {day && !day.is_rest_day && (planned.length > 0
-          ? <div className="today-exercises"><h3>Exercises today</h3><ol>{planned.map((item, index) => <li key={item.id}><span>{String(index + 1).padStart(2, '0')}</span>{item.exercises.name}</li>)}</ol></div>
-          : <p className="muted small" style={{ marginBottom: 0 }}>No exercises are scheduled yet. Add them in Edit routine.</p>)}
+        {day && !day.is_rest_day && planned.length === 0 && <p className="muted small" style={{ marginBottom: 0 }}>No exercises are scheduled yet. Add them in Edit routine.</p>}
       </section>
       <section className="card">
         <div className="row"><div className="eyebrow">Fuel today</div><ForkKnife size={24} color="var(--amber)" /></div>
-        <div style={{ marginTop: 28 }}><div className="metric">{Math.round(totals.calories)} <small>/ {targets?.calories ?? 2900} kcal</small></div><div className="progress-track" style={{ marginTop: 14 }}><div className="progress-fill" style={{ width: `${Math.min(100, totals.calories / (targets?.calories || 2900) * 100)}%` }} /></div></div>
-        <div className="row" style={{ marginTop: 22 }}><span className="muted small">Protein</span><strong>{Math.round(totals.protein)} / {targets?.protein_g ?? 170} g</strong></div>
-        <div className="row" style={{ marginTop: 10 }}><span className="muted small">Carbs</span><strong>{Math.round(totals.carbs)} / {targets?.carbs_g ?? 375} g</strong></div>
-        <div className="row" style={{ marginTop: 10 }}><span className="muted small">Fat</span><strong>{Math.round(totals.fat)} / {targets?.fat_g ?? 80} g</strong></div>
-        <Link href="/nutrition" className="btn full" style={{ marginTop: 24 }}>Log food <ArrowRight size={18} /></Link>
+        <div style={{ marginTop: 20 }}><div className="metric">{Math.round(totals.calories)} <small>{targets ? `/ ${targets.calories} kcal` : 'kcal logged'}</small></div>{targets && targets.calories > 0 && <div className="progress-track" style={{ marginTop: 14 }}><div className="progress-fill" style={{ width: `${Math.min(100, totals.calories / targets.calories * 100)}%` }} /></div>}</div>
+        <div className="row" style={{ marginTop: 22 }}><span className="muted small">Protein</span><strong>{Math.round(totals.protein)}{targets ? ` / ${targets.protein_g}` : ''} g</strong></div>
+        <div className="row" style={{ marginTop: 10 }}><span className="muted small">Carbs</span><strong>{Math.round(totals.carbs)}{targets ? ` / ${targets.carbs_g}` : ''} g</strong></div>
+        <div className="row" style={{ marginTop: 10 }}><span className="muted small">Fat</span><strong>{Math.round(totals.fat)}{targets ? ` / ${targets.fat_g}` : ''} g</strong></div>
+        {!loading && !targets && <Link href="/settings" className="muted small" style={{ marginTop: 12, display: 'inline-block', textDecoration: 'underline', textUnderlineOffset: 3 }}>Set your daily targets</Link>}
+        <Link href="/nutrition" className="btn full" style={{ marginTop: 12 }}>Log food <ArrowRight size={18} /></Link>
       </section>
     </div>
+    {day && !day.is_rest_day && planned.length > 0 && <section className="card today-exercises"><h2>Exercises today</h2><ol>{planned.map((item, index) => <li key={item.id}><span>{String(index + 1).padStart(2, '0')}</span>{item.exercises.name}</li>)}</ol></section>}
     <div className="section-head"><h2>Keep the streak moving</h2></div>
     <div className="grid-2">
       <Link href="/progress" className="card row"><div><div className="eyebrow">Body weight</div><div className="metric" style={{ marginTop: 14 }}>{displayValue(latestWeight?.weight_kg ?? null, 'weight', units) ?? '—'} <small>{unitLabel('weight', units)}</small></div><p className="muted small" style={{ marginBottom: 0 }}>{latestWeight ? `Last logged ${niceDate(latestWeight.measured_at)}` : 'Log your first weigh-in'}</p>{weightChange !== null && <p className="muted small" style={{ margin: '6px 0 0' }}>{weightChange > 0 ? '+' : ''}{weightChange} {unitLabel('weight', units)} since {niceDate(previousWeight.measured_at)}</p>}</div><TrendUp size={27} color="var(--accent)" /></Link>

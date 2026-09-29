@@ -15,7 +15,10 @@ try {
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true)
     const start = await page.getByRole('button', { name: 'Start workout' }).boundingBox()
     assert.ok(start && start.y + start.height <= height - (name === 'mobile' ? 64 : 0), `Start workout is outside the first ${name} viewport`)
+    const food = await page.getByRole('button', { name: 'Log food' }).boundingBox()
     await page.screenshot({ path: `${output}/${name}.png`, fullPage: true })
+    console.log(`${name}: Log food bottom ${food ? Math.round(food.y + food.height) : 'missing'}px; available ${height - (name === 'mobile' ? 64 : 0)}px`)
+    assert.ok(food && food.y + food.height <= height - (name === 'mobile' ? 64 : 0), `Log food is behind the first ${name} viewport navigation`)
     await page.close()
   }
 } finally {

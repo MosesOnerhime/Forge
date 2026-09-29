@@ -290,3 +290,7 @@ Acceptance: an owner can upload a supported file, see its name, open a signed im
 ## Routine templates addendum (2026-09-29)
 
 First-use setup offers Runo's Workout Routine, Mom's Starter Routine, and a blank week. Selection loads seven days and their exercise prescriptions. A signed-in user can edit day names, training/recovery state, durations, exercises, and prescriptions; save the current week as a private template; and load a template later. Switching archives the previous program so past sessions still resolve to their original days. Active sessions block a switch. Exercise reference media remains owner-private and attached to the owner's exercise records; scheduled-day videos stay with the archived days. Runo's initial prescriptions remain provisional until the missing original document is supplied.
+
+## Personal nutrition targets (2026-09-29)
+
+Each new account chooses its own calorie and macro targets during setup. Runo's numbers may prefill only when Runo's routine is selected; another routine must not inherit them. Today and Nutrition show logged amounts without a made-up goal if no target exists, with a path to Settings to add one.

@@ -229,3 +229,12 @@ Each routine exercise has a compact **Reference images & videos** disclosure bel
 First use presents a single-choice list with each plan's purpose, training-day count, exercise count, and a seven-day preview for the selected choice. Template management stays behind Edit routine, where Save current routine and Load selected routine are explicit actions. Day details sit in a disclosure above the selected day's exercises so the main logging plan remains scannable. The starter plan's copy avoids a promise of targeted fat loss and does not use Runo's nutrition targets.
 
 The development-only `/design-preview/templates` route renders this chooser with labeled sample data. Its 390px Runo and Mom states and 1440px desktop state were captured in `docs/screenshots/`; the checked mobile document width did not exceed the viewport.
+
+### Today action order review (2026-09-29)
+
+| Before | After | Why |
+| --- | --- | --- |
+| The full exercise list filled the training card before the nutrition card on a phone. | The Start workout and Log food actions lead; the ordered exercise list follows both summaries. | In the 390px preview, Log food now ends 13px above the fixed navigation instead of sitting behind it. The seven exercise names stay on Today. |
+| A missing nutrition target displayed Runo's 2,900 kcal and macro goals. | The cards show logged amounts and a link to set targets. | A different account must not mistake Runo's figures for its own goals. |
+
+The refreshed `docs/screenshots/mobile.png` and `desktop.png` show the layout. The first mobile viewport check used Edge at 390x844; it proves layout geometry, not physical touch behavior.

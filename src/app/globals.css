@@ -37,6 +37,7 @@ p { line-height:1.5; }
 .muted { color:var(--muted); }
 .small { font-size:13px; }
 .page-head { display:grid; margin:0 0 28px; }
+.today-head { margin-bottom:16px; }
 .page-head>h1 { grid-row:1; margin-top:0; }
 .page-head>.eyebrow { grid-row:2; }
 .page-head>p { grid-row:3; }
@@ -44,8 +45,8 @@ p { line-height:1.5; }
 .page-head p { margin:8px 0 0; color:var(--muted); }
 .card { background:var(--surface); border:1px solid var(--line); border-radius:16px; padding:20px; }
 .card.strong { background:linear-gradient(135deg,#261b18,#171a20 65%); border-color:#633722; }
-.today-exercises { margin-top:22px; padding-top:16px; border-top:1px solid var(--line); }
-.today-exercises h3 { font-size:14px; }
+.today-exercises { margin-top:16px; }
+.today-exercises h2 { font-size:16px; }
 .today-exercises ol { list-style:none; margin:10px 0 0; padding:0; }
 .today-exercises li { display:grid; grid-template-columns:22px minmax(0,1fr); gap:10px; padding:6px 0; font-size:13px; line-height:1.35; }
 .today-exercises li span { color:var(--accent); font-variant-numeric:tabular-nums; font-weight:800; }

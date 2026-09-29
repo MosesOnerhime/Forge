@@ -7,23 +7,23 @@ export default function DesignPreview() {
   return <div className="shell">
     <aside className="sidebar"><div className="brand">FORGE<span>.</span></div><Nav activePath="/today" /></aside>
     <main className="main">
-      <div className="page-head"><div className="eyebrow">Monday, September 28</div><h1>Today starts here.</h1><p>One clear view of the work ahead.</p></div>
+      <div className="page-head today-head"><div className="eyebrow">Monday, September 28</div><h1>Today starts here.</h1><p>One clear view of the work ahead.</p></div>
       <div className="notice success" style={{ marginBottom: 16 }}>Sample data for layout review. These numbers are not from an account.</div>
       <div className="grid-2">
         <section className="card strong">
           <div className="row"><div className="eyebrow">Training plan</div><Barbell size={24} color="var(--accent)" /></div>
-          <h2 style={{ fontSize: 30, marginTop: 28 }}>Back + Biceps + Forearms</h2>
+          <h2 style={{ fontSize: 30, marginTop: 24 }}>Back + Biceps + Forearms</h2>
           <p className="muted">7 exercises · 85–110 min</p>
-          <div className="row wrap" style={{ marginTop: 30 }}><button className="btn primary">Start workout <ArrowRight size={18} /></button><span className="muted small">Weekly plan →</span></div>
-          <div className="today-exercises"><h3>Exercises today</h3><ol>{['Weighted Pull-ups', 'Chest-Supported Row', 'Lat Pulldown', 'Incline Dumbbell Curl', 'Preacher Curl / Cable Curl', 'Reverse Curl', 'Wrist Curl / Reverse Wrist Curl'].map((name, index) => <li key={name}><span>{String(index + 1).padStart(2, '0')}</span>{name}</li>)}</ol></div>
+          <div className="row wrap" style={{ marginTop: 20 }}><button className="btn primary">Start workout <ArrowRight size={18} /></button><span className="muted small">Weekly plan →</span></div>
         </section>
         <section className="card">
           <div className="row"><div className="eyebrow">Fuel today</div><ForkKnife size={24} color="var(--amber)" /></div>
-          <div style={{ marginTop: 28 }}><div className="metric">1,840 <small>/ 2,900 kcal</small></div><div className="progress-track" style={{ marginTop: 14 }}><div className="progress-fill" style={{ width: '63%' }} /></div></div>
+          <div style={{ marginTop: 20 }}><div className="metric">1,840 <small>/ 2,900 kcal</small></div><div className="progress-track" style={{ marginTop: 14 }}><div className="progress-fill" style={{ width: '63%' }} /></div></div>
           {([['Protein', '112 / 170 g'], ['Carbs', '220 / 375 g'], ['Fat', '54 / 80 g']] as const).map(([name, value]) => <div className="row" style={{ marginTop: 12 }} key={name}><span className="muted small">{name}</span><strong>{value}</strong></div>)}
-          <button className="btn full" style={{ marginTop: 24 }}>Log food <ArrowRight size={18} /></button>
+          <button className="btn full" style={{ marginTop: 12 }}>Log food <ArrowRight size={18} /></button>
         </section>
       </div>
+      <section className="card today-exercises"><h2>Exercises today</h2><ol>{['Weighted Pull-ups', 'Chest-Supported Row', 'Lat Pulldown', 'Incline Dumbbell Curl', 'Preacher Curl / Cable Curl', 'Reverse Curl', 'Wrist Curl / Reverse Wrist Curl'].map((name, index) => <li key={name}><span>{String(index + 1).padStart(2, '0')}</span>{name}</li>)}</ol></section>
       <div className="section-head"><h2>In the gym</h2></div>
       <section className="card">
         <div className="row wrap"><div className="row" style={{ justifyContent: 'flex-start' }}><span className="pill orange">01</span><h2>Weighted Pull-ups</h2></div></div>

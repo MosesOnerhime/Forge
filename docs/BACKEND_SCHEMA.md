@@ -561,3 +561,7 @@ The exact sets, rep ranges and rest times should be seeded from the existing wor
 ## Routine templates (2026-09-29)
 
 `routine_templates(id, user_id nullable, name, description, days jsonb, created_at)` stores built-in rows with null owner and owner-private saved snapshots. RLS allows authenticated reads of built-ins and own rows; only owners can delete their rows. Inserts occur through `forge_save_routine_template`, not direct client writes. `workout_programs.source_template_id` records the selected source and becomes null if a private saved template is removed. Applying a template creates new program/day/plan rows while retaining archived programs for session history. Reference-media objects are not copied into a template.
+
+## Nutrition target seed correction (2026-09-29)
+
+Migration 005 changes `forge_seed_user` to leave `nutrition_targets` empty for new accounts. The owner enters targets during onboarding, which stores a dated row. Existing rows are retained; the migration does not rewrite another user's nutrition history. The local PostgreSQL harness asserts zero target rows immediately after two signups, then adds explicit owner fixtures for RLS checks.

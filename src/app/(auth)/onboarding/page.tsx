@@ -67,16 +67,22 @@ function SetupForm() {
         const initial = available.find(item => item.id === program.data?.source_template_id)
           ?? available.find(item => item.user_id === null && item.name === "Runo's Workout Routine") ?? available[0]
         if (!initial) throw new Error('Routine templates are missing. Apply the latest database migration.')
+        const runoPlan = initial.user_id === null && initial.name === "Runo's Workout Routine"
         if (!live) return
         setName(profile.data.display_name ?? '')
         setUnits(profile.data.units === 'imperial' ? 'imperial' : 'metric')
         setGoalId(savedGoal.data?.id ?? null)
         setGoal(savedGoal.data?.name ?? '')
-        if (target.data) {
+        if (target.data && (runoPlan || program.data?.source_template_id === initial.id)) {
           setCalories(String(target.data.calories))
           setProtein(String(target.data.protein_g))
           setCarbs(String(target.data.carbs_g))
           setFat(String(target.data.fat_g))
+        } else if (!runoPlan) {
+          setCalories('')
+          setProtein('')
+          setCarbs('')
+          setFat('')
         }
         setTemplates(available)
         setSelectedTemplate(initial.id)

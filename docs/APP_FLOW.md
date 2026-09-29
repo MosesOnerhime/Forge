@@ -428,3 +428,7 @@ Edit routine -> choose the training day containing an exercise -> expand **Refer
 ## Routine templates flow (2026-09-29)
 
 New account -> onboarding -> choose Runo's plan, Mom's starter, or Build from scratch -> review the seven-day preview -> complete setup -> selected plan becomes active. Existing account -> Workouts -> Edit routine -> Choose or save a template -> select a built-in or private template -> confirm Load -> return to Edit routine. To make a custom template: start blank or edit any active routine, rename and configure each day, add exercises, then Save current routine with a private name. Finish/cancel an active workout before switching. History keeps sessions from previous programs.
+
+## Nutrition choice and Today order (2026-09-29)
+
+During onboarding, selecting Runo's plan can prefill his supplied nutrition figures. Selecting another plan clears those figures unless the user already entered their own targets. Today and Nutrition show consumed amounts and a Settings link if targets are absent. On phones, Today puts Log food before the full exercise list so it is reachable above the fixed navigation in the checked 390px viewport.

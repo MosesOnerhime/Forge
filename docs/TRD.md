@@ -304,3 +304,7 @@ Database migrations must be stored in source control.
 ## Routine templates (2026-09-29)
 
 Migration `202609290004_routine_templates.sql` adds RLS-protected `routine_templates` with nullable owner for read-only built-ins, JSONB seven-day snapshots, and a source-template reference on active programs. `forge_save_routine_template` snapshots the caller's active week. `forge_apply_routine_template` checks authentication and ownership, serializes a switch per profile, rejects active sessions, deactivates the previous program, and creates a complete new program inside one transaction. The old program and days remain for historical foreign keys. Onboarding asks the apply RPC to reuse an already selected active template during retry. Built-ins contain no private media or personal body metrics.
+
+## Nutrition seed correction (2026-09-29)
+
+Migration `202609290005_nutrition_target_choice.sql` replaces `forge_seed_user` so signup creates the profile and provisional workout fallback without inserting Runo's nutrition values into every account. Onboarding writes owner-chosen targets after the routine choice. Existing target rows are preserved. Client summaries handle a missing target as an unset state and avoid division by zero.

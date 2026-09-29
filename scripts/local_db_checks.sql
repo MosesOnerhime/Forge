@@ -11,8 +11,8 @@ begin
   if (select count(*) from public.program_exercises) <> 70 then
     raise exception 'Expected 35 seeded exercises per user';
   end if;
-  if (select count(*) from public.nutrition_targets) <> 2 then
-    raise exception 'Expected a nutrition target per user';
+  if (select count(*) from public.nutrition_targets) <> 0 then
+    raise exception 'New users must choose their own nutrition targets';
   end if;
   if (select count(*) from public.profiles where onboarding_completed_at is null) <> 2 then
     raise exception 'Expected new users to need onboarding';
@@ -34,6 +34,12 @@ begin
   ) then raise exception 'Private exercise media bucket is missing or misconfigured'; end if;
 end;
 $$;
+
+-- The signup seed no longer assigns Runo's target to every account. Add
+-- explicit owner fixtures so the isolation checks below still exercise RLS.
+insert into public.nutrition_targets
+  (user_id, effective_from, calories, protein_g, carbs_g, fat_g)
+select id, current_date, 2000, 120, 230, 65 from auth.users;
 
 grant usage on schema public, auth, storage to authenticated;
 grant select, insert, update, delete on all tables in schema public to authenticated;

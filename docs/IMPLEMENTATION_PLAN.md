@@ -311,3 +311,7 @@ Added an exercise-owned media table and private Storage bucket, file validation,
 ## Routine template extension (2026-09-29)
 
 Apply migration 004 before deploying the picker. Verify three built-ins, owner-only saved templates, onboarding choice, blank-week editing, save/reload, active-session rejection, and preserved session history in the local database harness and signed-in browser. Complete mobile and desktop visual checks. The missing original Runo prescriptions and the mother's equipment/health restrictions remain open inputs for plan refinement.
+
+## Nutrition and Today correction (2026-09-29)
+
+Apply migration 005 before deploying the UI that removes the universal nutrition fallback. Verify a new account has no seeded nutrition row, then complete onboarding with each template choice and check that only account-entered targets appear in Today and Nutrition. Check the phone layout at 390px for both Start workout and Log food above the fixed navigation. The local database, rendered component, and layout checks cover part of this; a real new-account flow remains required.

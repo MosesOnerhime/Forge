@@ -29,3 +29,7 @@ The implementation plan's final test is a real account round trip: create accoun
 ## Routine templates addendum (2026-09-29)
 
 New user request: first-use selection of Runo's provisional routine, a separate beginner plan for the user's mother, and owner-private save/reload of edited routines. Migration 004 and UI implement those paths. Local RPC and live browser evidence are tracked in BUILD_STATUS; do not count code presence as live acceptance.
+
+## Nutrition target and Today correction (2026-09-29)
+
+Migration 005 removes the signup-time Runo nutrition target for future accounts, while keeping existing rows. Local PostgreSQL signup fixtures now assert zero targets before explicit RLS fixtures are added. Today, Nutrition, and Settings have no hardcoded fallback target when the account lacks one; rendered tests cover both targetless summaries. A 390x844 Edge preview shows Start workout and Log food above the fixed bottom navigation after the full exercise list moved below both summary cards. The database change still needs application to the configured Supabase project and a real new-user account test.

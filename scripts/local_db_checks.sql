@@ -91,6 +91,93 @@ begin
 end;
 $$;
 
+-- Routine swaps are adjacent, owner scoped, and leave the plan unchanged when
+-- a database failure interrupts the middle of the swap.
+do $$
+declare owner_day_id uuid; item_id uuid; neighbor_id uuid; foreign_item_id uuid;
+begin
+  select id into owner_day_id from public.workout_days where day_of_week = 1;
+  select id into item_id from public.program_exercises where workout_day_id = owner_day_id and sort_order = 3;
+  select id into neighbor_id from public.program_exercises where workout_day_id = owner_day_id and sort_order = 2;
+  if not public.forge_reorder_program_exercise(item_id, -1) then
+    raise exception 'Routine reorder did not move an exercise up';
+  end if;
+  if (select sort_order from public.program_exercises where id = item_id) <> 2
+    or (select sort_order from public.program_exercises where id = neighbor_id) <> 3 then
+    raise exception 'Routine reorder did not swap adjacent exercises';
+  end if;
+  if not public.forge_reorder_program_exercise(item_id, 1) then
+    raise exception 'Routine reorder did not move an exercise down';
+  end if;
+  if (select sort_order from public.program_exercises where id = item_id) <> 3
+    or (select sort_order from public.program_exercises where id = neighbor_id) <> 2 then
+    raise exception 'Reverse routine reorder did not restore positions';
+  end if;
+  if public.forge_reorder_program_exercise(neighbor_id, -1) then
+    raise exception 'Routine reorder crossed the top boundary';
+  end if;
+  begin
+    perform public.forge_reorder_program_exercise(item_id, 0);
+    raise exception 'Invalid reorder direction was accepted';
+  exception when raise_exception then
+    if sqlerrm <> 'Direction must be -1 or 1' then raise; end if;
+  end;
+  begin
+    perform public.forge_reorder_program_exercise(item_id, null);
+    raise exception 'Null reorder direction was accepted';
+  exception when raise_exception then
+    if sqlerrm <> 'Direction must be -1 or 1' then raise; end if;
+  end;
+  perform set_config('forge.test_user_id', '22222222-2222-4222-8222-222222222222', true);
+  select id into foreign_item_id from public.program_exercises
+  where user_id = '22222222-2222-4222-8222-222222222222' limit 1;
+  perform set_config('forge.test_user_id', '11111111-1111-4111-8111-111111111111', true);
+  if foreign_item_id is null then raise exception 'Cross-owner reorder fixture is missing'; end if;
+  begin
+    perform public.forge_reorder_program_exercise(foreign_item_id, 1);
+    raise exception 'Cross-owner routine reorder was accepted';
+  exception when raise_exception then
+    if sqlerrm <> 'Exercise is not in your routine' then raise; end if;
+  end;
+end;
+$$;
+
+reset role;
+create function public.forge_test_fail_reorder() returns trigger
+language plpgsql as $$
+begin
+  if old.sort_order = 2 and new.sort_order = 3 then
+    raise exception 'Injected reorder failure';
+  end if;
+  return new;
+end;
+$$;
+create trigger forge_test_fail_reorder before update on public.program_exercises
+for each row execute function public.forge_test_fail_reorder();
+set role authenticated;
+do $$
+declare owner_day_id uuid; item_id uuid; neighbor_id uuid;
+begin
+  select id into owner_day_id from public.workout_days where day_of_week = 1;
+  select id into item_id from public.program_exercises where workout_day_id = owner_day_id and sort_order = 3;
+  select id into neighbor_id from public.program_exercises where workout_day_id = owner_day_id and sort_order = 2;
+  begin
+    perform public.forge_reorder_program_exercise(item_id, -1);
+    raise exception 'Injected failure did not interrupt reorder';
+  exception when raise_exception then
+    if sqlerrm <> 'Injected reorder failure' then raise; end if;
+  end;
+  if (select sort_order from public.program_exercises where id = item_id) <> 3
+    or (select sort_order from public.program_exercises where id = neighbor_id) <> 2 then
+    raise exception 'Failed routine reorder changed exercise order';
+  end if;
+end;
+$$;
+reset role;
+drop trigger forge_test_fail_reorder on public.program_exercises;
+drop function public.forge_test_fail_reorder();
+set role authenticated;
+
 -- Previous-performance RPC must return the latest completed occurrence.
 insert into public.workout_sessions (id,user_id,workout_day_id,started_at,completed_at,status)
 select '44444444-4444-4444-8444-444444444444', auth.uid(), id,

@@ -27,7 +27,12 @@ try {
   if ($LASTEXITCODE -ne 0) { throw 'pg_ctl start failed' }
   & $forgeCreatedb -h localhost -p $Port -U forge_test forge_migration_test
   if ($LASTEXITCODE -ne 0) { throw 'createdb failed' }
-  & $forgePsql -X -v ON_ERROR_STOP=1 -h localhost -p $Port -U forge_test -d forge_migration_test -f 'scripts/local_db_bootstrap.sql' -f 'supabase/migrations/202609280001_initial.sql' -f 'scripts/local_db_checks.sql'
+  $forgePsqlArgs = @('-X', '-v', 'ON_ERROR_STOP=1', '-h', 'localhost', '-p', $Port, '-U', 'forge_test', '-d', 'forge_migration_test', '-f', 'scripts/local_db_bootstrap.sql')
+  foreach ($migration in (Get-ChildItem -LiteralPath (Join-Path $forgeRoot 'supabase/migrations') -Filter '*.sql' | Sort-Object Name)) {
+    $forgePsqlArgs += @('-f', $migration.FullName)
+  }
+  $forgePsqlArgs += @('-f', 'scripts/local_db_checks.sql')
+  & $forgePsql @forgePsqlArgs
   if ($LASTEXITCODE -ne 0) { throw 'Migration checks failed' }
 } finally {
   if (Test-Path -LiteralPath $forgeCluster) {

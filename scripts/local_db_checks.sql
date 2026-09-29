@@ -196,6 +196,95 @@ set forge.test_user_id = '11111111-1111-4111-8111-111111111111';
 -- Deliberately reference a food belonging to the other user. Composite FKs
 -- must reject it even if a client tries to submit a forged foreign key.
 reset role;
+
+-- Populate every private table for both accounts, then exercise each RLS
+-- policy as the first account. Seeded rows alone leave several tables empty.
+insert into public.goals (user_id, name)
+select id, 'RLS probe goal' from auth.users;
+insert into public.workout_sessions (user_id, workout_day_id, status, completed_at, notes)
+select day.user_id, day.id, 'completed', now(), 'RLS probe session'
+from public.workout_days day where day.day_of_week = 1;
+insert into public.session_exercises
+  (user_id, session_id, exercise_id, sort_order, target_sets, min_reps, max_reps, rest_seconds)
+select session.user_id, session.id, exercise.id, 1, 1, 1, 10, 60
+from public.workout_sessions session
+join public.exercises exercise on exercise.user_id = session.user_id and exercise.name = 'Weighted Pull-ups'
+where session.notes = 'RLS probe session';
+insert into public.workout_sets
+  (user_id, session_exercise_id, set_number, weight_kg, reps, completed, completed_at)
+select exercise.user_id, exercise.id, 1, 10, 5, true, now()
+from public.session_exercises exercise
+join public.workout_sessions session on session.id = exercise.session_id
+where session.notes = 'RLS probe session';
+insert into public.foods (user_id, name, serving_description, calories, protein_g, carbs_g, fat_g)
+select id, 'RLS probe food', '1 serving', 100, 5, 10, 4 from auth.users;
+insert into public.food_entries
+  (user_id, food_id, logged_date, meal_type, calories, protein_g, carbs_g, fat_g)
+select food.user_id, food.id, current_date, 'lunch', 100, 5, 10, 4
+from public.foods food where food.name = 'RLS probe food';
+insert into public.body_measurements (user_id, measured_at, weight_kg)
+select id, current_date, 75 from auth.users;
+insert into public.progress_photos (user_id, photo_date, view_type, storage_path)
+select id, current_date, 'front', id::text || '/rls-probe.jpg' from auth.users;
+insert into public.journal_entries (user_id, entry_date, content)
+select id, current_date, 'RLS probe entry' from auth.users;
+insert into storage.objects (bucket_id, name)
+select 'progress-photos', id::text || '/rls-probe.jpg' from auth.users;
+
+set role authenticated;
+set forge.test_user_id = '11111111-1111-4111-8111-111111111111';
+do $$
+declare table_name text; own_rows integer; foreign_rows integer; affected integer;
+begin
+  foreach table_name in array array[
+    'profiles', 'goals', 'workout_programs', 'workout_days', 'exercises',
+    'program_exercises', 'workout_sessions', 'session_exercises', 'workout_sets',
+    'nutrition_targets', 'foods', 'food_entries', 'body_measurements',
+    'progress_photos', 'journal_entries'
+  ] loop
+    if not exists (
+      select 1 from pg_class relation
+      join pg_namespace schema on schema.oid = relation.relnamespace
+      where schema.nspname = 'public' and relation.relname = table_name
+        and relation.relrowsecurity
+    ) then raise exception 'RLS disabled on %', table_name; end if;
+
+    execute format('select count(*) from public.%I where user_id = auth.uid()', table_name) into own_rows;
+    execute format('select count(*) from public.%I where user_id <> auth.uid()', table_name) into foreign_rows;
+    if own_rows = 0 or foreign_rows <> 0 then
+      raise exception 'RLS read isolation failed on %: own %, foreign %', table_name, own_rows, foreign_rows;
+    end if;
+
+    execute format('update public.%I set user_id = user_id where user_id <> auth.uid()', table_name);
+    get diagnostics affected = row_count;
+    if affected <> 0 then raise exception 'RLS update isolation failed on %', table_name; end if;
+    execute format('delete from public.%I where user_id <> auth.uid()', table_name);
+    get diagnostics affected = row_count;
+    if affected <> 0 then raise exception 'RLS delete isolation failed on %', table_name; end if;
+  end loop;
+
+  begin
+    insert into public.goals (user_id, name)
+    values ('22222222-2222-4222-8222-222222222222', 'Forged owner');
+    raise exception 'RLS accepted a forged-owner insert';
+  exception when insufficient_privilege then null;
+  end;
+
+  if (select count(*) from storage.objects where bucket_id = 'progress-photos') <> 1 then
+    raise exception 'Private Storage read isolation failed';
+  end if;
+  delete from storage.objects where name = '22222222-2222-4222-8222-222222222222/rls-probe.jpg';
+  get diagnostics affected = row_count;
+  if affected <> 0 then raise exception 'Private Storage delete isolation failed'; end if;
+  begin
+    insert into storage.objects (bucket_id, name)
+    values ('progress-photos', '22222222-2222-4222-8222-222222222222/forged.jpg');
+    raise exception 'Private Storage accepted a forged-owner insert';
+  exception when insufficient_privilege then null;
+  end;
+end;
+$$;
+reset role;
 insert into public.foods (id,user_id,name,serving_description,calories,protein_g,carbs_g,fat_g)
 values ('33333333-3333-4333-8333-333333333333','22222222-2222-4222-8222-222222222222','Other food','1 serving',100,10,10,2);
 set role authenticated;

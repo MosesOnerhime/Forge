@@ -10,6 +10,11 @@ export function nutritionTotals(entries: Pick<FoodEntry,'calories'|'protein_g'|'
   }),{calories:0,protein:0,carbs:0,fat:0})
 }
 
+export function nutritionBalance(consumed: number, target: number, unit: 'kcal' | 'g') {
+  const difference = Math.round(target - consumed)
+  return difference >= 0 ? `${difference} ${unit} remaining` : `${-difference} ${unit} over target`
+}
+
 export function setVolume(set: Pick<WorkoutSet,'weight_kg'|'reps'>) { return number(set.weight_kg)*number(set.reps) }
 
 export function sessionDurationMinutes(startedAt:string,completedAt:string|null) {

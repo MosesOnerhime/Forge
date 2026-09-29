@@ -1,5 +1,5 @@
 import { describe,expect,it } from 'vitest'
-import { nutritionTotals,sessionDurationMinutes,sessionSummary } from '../src/lib/metrics'
+import { nutritionBalance,nutritionTotals,sessionDurationMinutes,sessionSummary } from '../src/lib/metrics'
 import type { WorkoutSet } from '../src/lib/data'
 import { displayValue,storageValue } from '../src/lib/units'
 
@@ -9,6 +9,12 @@ describe('fitness summaries',()=>{
   it('keeps stored food snapshots and fractional servings in totals',()=>{
     const result=nutritionTotals([{calories:123.75,protein_g:10.5,carbs_g:12.25,fat_g:3.5},{calories:240.25,protein_g:20,carbs_g:30,fat_g:4}])
     expect(result).toEqual({calories:364,protein:30.5,carbs:42.25,fat:7.5})
+  })
+  it('shows remaining macros and clearly labels an exceeded target',()=>{
+    expect(nutritionBalance(112,170,'g')).toBe('58 g remaining')
+    expect(nutritionBalance(170,170,'g')).toBe('0 g remaining')
+    expect(nutritionBalance(185,170,'g')).toBe('15 g over target')
+    expect(nutritionBalance(3030,2900,'kcal')).toBe('130 kcal over target')
   })
   it('counts completed exercises, sets, volume, and all-time volume PRs',()=>{
     const items=[{exercise_id:'a',workout_sets:[set(80,8),set(90,8),set(100,1,false)]},{exercise_id:'b',workout_sets:[set(20,10)]}]

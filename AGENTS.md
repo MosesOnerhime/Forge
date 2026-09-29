@@ -61,6 +61,7 @@ Keep this record current when setup or project state changes.
 - Added remaining values for protein, carbs, and fat on the Nutrition screen, with an over-target label that also covers calories. Typecheck, lint, 11 tests, and production build passed. Signed-in Nutrition rendering still needs a live account.
 - Today now lists the ordered exercises for the scheduled day, reports missing plan/day queries, and shows the body-weight change from the previous check-in. Refreshed development screenshots at 390px and 1440px; Edge checks passed seven exercise names, no horizontal overflow, and Start Workout inside the first mobile viewport. Typecheck, lint, 11 tests, build, and the Impeccable detector (zero anti-patterns) passed. Actual account data and start/resume remain unverified.
 - Query inspection found the exercise-history filter and dated journal list lacked owner-first indexes. Added both to the initial migration; the PostgreSQL 16 harness passed. A source scan found no service-role or secret-key references in app source/public assets/Next config/env example. Production-scale plans, bundle audit, and Lighthouse remain.
+- Added a Vitest alias config and rendered-component Today tests with controlled account data. Training-day ordered names/start navigation, rest-day behavior, and failed-plan error handling passed; typecheck, lint, and all 14 tests pass. These tests do not substitute for the live Supabase account round trip.
 
 ## Application build record (2026-09-28)
 

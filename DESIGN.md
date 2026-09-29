@@ -38,6 +38,15 @@ typography:
     fontSize: "12px"
     fontWeight: 700
     letterSpacing: "0.02em"
+  planTitle:
+    fontFamily: "Geist Sans, Arial, Helvetica, sans-serif"
+    fontSize: "14px"
+    fontWeight: 700
+  planItem:
+    fontFamily: "Geist Sans, Arial, Helvetica, sans-serif"
+    fontSize: "13px"
+    fontWeight: 400
+    lineHeight: 1.35
   metric:
     fontFamily: "Geist Sans, Arial, Helvetica, sans-serif"
     fontSize: "32px"
@@ -143,6 +152,7 @@ The hierarchy is clean and numeric. Headings use tight tracking; metrics use tab
 - **Body:** Default reading and control text (`typography.body`); paragraphs have a 1.5 line height.
 - **Label:** Compact field label (`typography.label`); the preview also uses a separate 13px bold card kicker, which is not a recommended system role.
 - **Metric:** Large, tightly tracked values (`typography.metric`); unit and target text recede to smaller muted type.
+- **Plan list:** A compact 14px heading and 13px ordered rows keep all seven exercises visible below the workout action (`typography.planTitle`, `typography.planItem`).
 
 **The Number First Rule.** Let weights, reps, calories, and macro totals lead their local group; keep units and comparison figures visually quieter.
 

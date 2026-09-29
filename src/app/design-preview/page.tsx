@@ -15,6 +15,7 @@ export default function DesignPreview() {
           <h2 style={{ fontSize: 30, marginTop: 28 }}>Back + Biceps + Forearms</h2>
           <p className="muted">7 exercises · 85–110 min</p>
           <div className="row wrap" style={{ marginTop: 30 }}><button className="btn primary">Start workout <ArrowRight size={18} /></button><span className="muted small">Weekly plan →</span></div>
+          <div className="today-exercises"><h3>Exercises today</h3><ol>{['Weighted Pull-ups', 'Chest-Supported Row', 'Lat Pulldown', 'Incline Dumbbell Curl', 'Preacher Curl / Cable Curl', 'Reverse Curl', 'Wrist Curl / Reverse Wrist Curl'].map((name, index) => <li key={name}><span>{String(index + 1).padStart(2, '0')}</span>{name}</li>)}</ol></div>
         </section>
         <section className="card">
           <div className="row"><div className="eyebrow">Fuel today</div><ForkKnife size={24} color="var(--amber)" /></div>
@@ -33,7 +34,7 @@ export default function DesignPreview() {
       </section>
       <div className="section-head"><h2>Keep the streak moving</h2></div>
       <div className="grid-2">
-        <div className="card"><div className="eyebrow">Body weight</div><div className="metric" style={{ marginTop: 14 }}>78.4 <small>kg</small></div><p className="muted small">Last logged yesterday</p></div>
+        <div className="card"><div className="eyebrow">Body weight</div><div className="metric" style={{ marginTop: 14 }}>78.4 <small>kg</small></div><p className="muted small">Last logged yesterday</p><p className="muted small">+0.4 kg since the previous check-in</p></div>
         <div className="card"><div className="eyebrow">Training notes</div><h2 style={{ marginTop: 14 }}>What did you notice?</h2><p className="muted small">Keep the details that numbers miss.</p></div>
       </div>
     </main>

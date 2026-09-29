@@ -29,3 +29,7 @@ Source of truth: [docs/SOURCE_SPEC.md](docs/SOURCE_SPEC.md). Decisions and gaps:
 ## Exercise references (2026-09-29)
 
 A user can attach private reference images and videos to an individual exercise. The same references appear wherever that exercise is scheduled or logged; they do not move with a workout day. The routine editor manages these files, and the session shows them on demand without loading media during set logging. The scheduled-day overview video remains separate.
+
+## Routine templates
+
+During setup, choose Runo's Workout Routine, Mom's Starter Routine, or a blank week. Edit day names and training/recovery status, then add and tune exercises. From Edit routine, open Templates to save your current week privately or load a saved or built-in week. A switch preserves prior workout history. Templates copy the schedule and prescriptions, while media remains private to its owner.

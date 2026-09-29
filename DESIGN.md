@@ -223,3 +223,7 @@ The selected training day has an optional reference-video card in Edit routine. 
 ### Exercise reference images and videos
 
 Each routine exercise has a compact **Reference images & videos** disclosure below its prescription. Opening it loads a list of saved media and the upload control; the closed state causes no media request. JPG/PNG/WebP images and MP4/WebM videos are displayed only after the user chooses View, using a signed private link. The session reuses the disclosure in read-only mode. Filenames wrap, actions remain reachable at mobile widths, progress and errors stay in context, and the form is secondary to set logging.
+
+### Routine templates
+
+First use presents a single-choice list with each plan's purpose, training-day count, exercise count, and a seven-day preview for the selected choice. Template management stays behind Edit routine, where Save current routine and Load selected routine are explicit actions. Day details sit in a disclosure above the selected day's exercises so the main logging plan remains scannable. The starter plan's copy avoids a promise of targeted fat loss and does not use Runo's nutrition targets.

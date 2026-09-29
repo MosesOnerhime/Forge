@@ -300,3 +300,7 @@ Database migrations must be stored in source control.
 ## Exercise reference media (2026-09-29)
 
 `202609290003_exercise_reference_media.sql` adds owner-scoped `exercise_reference_media` with a composite `(exercise_id, user_id)` foreign key to `exercises`, path checks for owner and exercise IDs, MIME and size constraints, and RLS. The private `exercise-reference-media` bucket accepts JPG/PNG/WebP and MP4/WebM, with a 50 MiB bucket cap; the table and client cap images at 10 MiB. Storage object policies restrict owner-folder reads, inserts, and deletes. Videos use the existing resumable TUS client; images use Storage upload. Metadata is inserted after the file, failed inserts trigger cleanup, and ambiguous saves are checked by path. Signed URLs are requested on View. JSON export includes metadata only.
+
+## Routine templates (2026-09-29)
+
+Migration `202609290004_routine_templates.sql` adds RLS-protected `routine_templates` with nullable owner for read-only built-ins, JSONB seven-day snapshots, and a source-template reference on active programs. `forge_save_routine_template` snapshots the caller's active week. `forge_apply_routine_template` checks authentication and ownership, serializes a switch per profile, rejects active sessions, deactivates the previous program, and creates a complete new program inside one transaction. The old program and days remain for historical foreign keys. Onboarding asks the apply RPC to reuse an already selected active template during retry. Built-ins contain no private media or personal body metrics.

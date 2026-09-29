@@ -7,9 +7,10 @@ import { supabase } from '@/lib/supabase'
 import { errorMessage } from '@/lib/data'
 import { localDate } from '@/lib/utils'
 import { storageValue, type Units } from '@/lib/units'
+import { RoutineTemplateChoice } from '@/components/routine-template-choice'
+import type { RoutineTemplate } from '@/lib/routine-templates'
 
 type TrainingDay = { day_of_week: number; name: string; is_rest_day: boolean }
-const weekday = ['', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 
 export default function OnboardingPage() {
   return <AuthProvider required><SetupForm /></AuthProvider>
@@ -23,6 +24,8 @@ function SetupForm() {
   const [retry, setRetry] = useState(0)
   const [error, setError] = useState('')
   const [days, setDays] = useState<TrainingDay[]>([])
+  const [templates, setTemplates] = useState<RoutineTemplate[]>([])
+  const [selectedTemplate, setSelectedTemplate] = useState('')
   const [name, setName] = useState('')
   const [units, setUnits] = useState<Units>('metric')
   const [goalId, setGoalId] = useState<string | null>(null)
@@ -31,6 +34,7 @@ function SetupForm() {
   const [protein, setProtein] = useState('170')
   const [carbs, setCarbs] = useState('375')
   const [fat, setFat] = useState('80')
+  const [nutritionTouched, setNutritionTouched] = useState(false)
   const [weight, setWeight] = useState('')
   const [waist, setWaist] = useState('')
   const [photo, setPhoto] = useState<File | null>(null)
@@ -46,20 +50,23 @@ function SetupForm() {
         const client = supabase()
         const { error: setupError } = await client.rpc('forge_ensure_user_setup')
         if (setupError) throw setupError
-        const [profile, savedGoal, target, program] = await Promise.all([
+        const [profile, savedGoal, target, templateResult, program] = await Promise.all([
           client.from('profiles').select('display_name,units,onboarding_completed_at').eq('user_id', user.id).single(),
           client.from('goals').select('id,name').eq('active', true).order('created_at', { ascending: false }).limit(1).maybeSingle(),
           client.from('nutrition_targets').select('calories,protein_g,carbs_g,fat_g').lte('effective_from', localDate()).order('effective_from', { ascending: false }).limit(1).maybeSingle(),
-          client.from('workout_programs').select('id').eq('active', true).maybeSingle(),
+          client.from('routine_templates').select('id,user_id,name,description,days,created_at').order('created_at'),
+          client.from('workout_programs').select('source_template_id').eq('active', true).maybeSingle(),
         ])
         if (profile.error) throw profile.error
         if (savedGoal.error) throw savedGoal.error
         if (target.error) throw target.error
+        if (templateResult.error) throw templateResult.error
         if (program.error) throw program.error
         if (profile.data.onboarding_completed_at) { router.replace('/today'); return }
-        if (!program.data) throw new Error('Your training plan is missing. Try again.')
-        const plan = await client.from('workout_days').select('day_of_week,name,is_rest_day').eq('program_id', program.data.id).order('day_of_week')
-        if (plan.error) throw plan.error
+        const available = (templateResult.data ?? []) as RoutineTemplate[]
+        const initial = available.find(item => item.id === program.data?.source_template_id)
+          ?? available.find(item => item.user_id === null && item.name === "Runo's Workout Routine") ?? available[0]
+        if (!initial) throw new Error('Routine templates are missing. Apply the latest database migration.')
         if (!live) return
         setName(profile.data.display_name ?? '')
         setUnits(profile.data.units === 'imperial' ? 'imperial' : 'metric')
@@ -71,7 +78,9 @@ function SetupForm() {
           setCarbs(String(target.data.carbs_g))
           setFat(String(target.data.fat_g))
         }
-        setDays(plan.data ?? [])
+        setTemplates(available)
+        setSelectedTemplate(initial.id)
+        setDays(initial.days)
       } catch (caught) {
         if (live) setError(errorMessage(caught))
       } finally {
@@ -85,6 +94,8 @@ function SetupForm() {
     event.preventDefault()
     if (!user || busy) return
     setError('')
+    if (!selectedTemplate) { setError('Choose a routine before continuing.'); return }
+    if ([calories, protein, carbs, fat].some(value => value.trim() === '')) { setError('Enter nutrition targets that fit this person before continuing.'); return }
     const targets = { calories: Number(calories), protein_g: Number(protein), carbs_g: Number(carbs), fat_g: Number(fat) }
     if (!goal.trim()) { setError('Add a fitness goal to continue.'); return }
     if (Object.values(targets).some(value => !Number.isFinite(value) || value < 0)) { setError('Enter non-negative nutrition targets.'); return }
@@ -131,6 +142,8 @@ function SetupForm() {
         const input = document.getElementById('starting-photo') as HTMLInputElement | null
         if (input) input.value = ''
       }
+      const { error: routineError } = await client.rpc('forge_apply_routine_template', { p_template_id: selectedTemplate, p_reuse_if_active: true })
+      if (routineError) throw routineError
       const { error: completeError } = await client.from('profiles').update({ onboarding_completed_at: new Date().toISOString() }).eq('user_id', user.id)
       if (completeError) throw completeError
       router.replace('/today')
@@ -148,8 +161,8 @@ function SetupForm() {
     {loading ? <div className="empty">Loading your plan…</div> : <form className="stack" onSubmit={finish}>
       <section className="card stack"><h2>1. Your profile</h2><div className="field-row"><div><label htmlFor="setup-name">Display name</label><input id="setup-name" maxLength={100} value={name} onChange={event => setName(event.target.value)} placeholder="Optional" /></div><div><label htmlFor="setup-units">Units</label><select id="setup-units" value={units} onChange={event => setUnits(event.target.value as Units)}><option value="metric">Kilograms and centimeters</option><option value="imperial">Pounds and inches</option></select></div></div></section>
       <section className="card stack"><h2>2. Your goal</h2><div><label htmlFor="setup-goal">What are you training toward?</label><input id="setup-goal" required maxLength={100} value={goal} onChange={event => setGoal(event.target.value)} placeholder="For example, build strength" /></div></section>
-      <section className="card stack"><h2>3. Your routine</h2><p className="muted" style={{ margin: 0 }}>Your weekly plan is ready. You can edit exercises and prescriptions later.</p>{days.length === 7 ? <div>{days.map(day => <div className="item row" key={day.day_of_week}><strong>{weekday[day.day_of_week]}</strong><span className="muted small">{day.is_rest_day ? 'Rest' : day.name}</span></div>)}</div> : <div className="notice" role="alert">The weekly plan did not load. Try again before finishing setup.</div>}</section>
-      <section className="card stack"><h2>4. Daily nutrition targets</h2><div className="fields cols-3">{([['Calories', calories, setCalories], ['Protein g', protein, setProtein], ['Carbs g', carbs, setCarbs], ['Fat g', fat, setFat]] as const).map(([label, value, setter]) => <div key={label}><label htmlFor={`setup-${label}`}>{label}</label><input id={`setup-${label}`} type="number" min="0" step="1" required value={value} onChange={event => setter(event.target.value)} /></div>)}</div></section>
+      <section className="card stack"><h2>3. Your routine</h2><p className="muted" style={{ margin: 0 }}>Choose a full weekly plan. You can edit it later and save your own version as a template.</p>{templates.length > 0 ? <RoutineTemplateChoice templates={templates} selected={selectedTemplate} onSelect={id => { const chosen = templates.find(template => template.id === id); setSelectedTemplate(id); setDays(chosen?.days ?? []); if (!nutritionTouched) { const runo = chosen?.user_id === null && chosen?.name === "Runo's Workout Routine"; setCalories(runo ? '2900' : ''); setProtein(runo ? '170' : ''); setCarbs(runo ? '375' : ''); setFat(runo ? '80' : '') } }} disabled={busy} /> : <div className="notice" role="alert">The routine templates did not load. Try again before finishing setup.</div>}</section>
+      <section className="card stack"><h2>4. Daily nutrition targets</h2><p className="muted small" style={{margin:0}}>Runo&apos;s figures are from his brief. Other routines do not set nutrition needs; enter targets for the person using this account.</p><div className="fields cols-3">{([['Calories', calories, setCalories], ['Protein g', protein, setProtein], ['Carbs g', carbs, setCarbs], ['Fat g', fat, setFat]] as const).map(([label, value, setter]) => <div key={label}><label htmlFor={`setup-${label}`}>{label}</label><input id={`setup-${label}`} type="number" min="0" step="1" required value={value} onChange={event => { setNutritionTouched(true); setter(event.target.value) }} /></div>)}</div></section>
       <section className="card stack"><h2>5. Starting progress <span className="muted small">(optional)</span></h2><div className="field-row"><div><label htmlFor="setup-weight">Body weight ({units === 'metric' ? 'kg' : 'lb'})</label><input id="setup-weight" type="number" inputMode="decimal" min="0.01" step="0.01" value={weight} onChange={event => setWeight(event.target.value)} /></div><div><label htmlFor="setup-waist">Waist ({units === 'metric' ? 'cm' : 'in'})</label><input id="setup-waist" type="number" inputMode="decimal" min="0.01" step="0.01" value={waist} onChange={event => setWaist(event.target.value)} /></div></div><div className="field-row"><div><label htmlFor="starting-photo">Progress photo</label><input id="starting-photo" type="file" accept="image/jpeg,image/png,image/webp" onChange={event => setPhoto(event.target.files?.[0] ?? null)} /></div><div><label htmlFor="starting-view">Photo view</label><select id="starting-view" value={photoView} onChange={event => setPhotoView(event.target.value)}><option value="front">Front</option><option value="side">Side</option><option value="back">Back</option><option value="custom">Custom</option></select></div></div><p className="muted small" style={{ margin: 0 }}>You can add measurements and photos later.</p></section>
       <button className="btn primary" disabled={busy || days.length !== 7} style={{ justifySelf: 'start' }}>{busy ? 'Saving setup…' : 'Open Today'}</button>
     </form>}

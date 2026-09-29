@@ -557,3 +557,7 @@ The exact sets, rep ranges and rest times should be seeded from the existing wor
 ### exercise_reference_media (2026-09-29)
 
 `id UUID PRIMARY KEY`, `user_id UUID NOT NULL`, `exercise_id UUID NOT NULL`, `storage_path TEXT NOT NULL UNIQUE`, `original_name VARCHAR(255) NOT NULL`, `mime_type VARCHAR(20) NOT NULL`, `file_size_bytes INTEGER NOT NULL`, `created_at TIMESTAMPTZ NOT NULL`. A composite `(exercise_id, user_id)` foreign key targets `exercises(id, user_id)` with cascade delete. RLS allows only the owner. Paths begin with `<user_id>/<exercise_id>/`. The private `exercise-reference-media` Storage bucket has owner-folder policies and accepts JPG/PNG/WebP images and MP4/WebM videos. Images are at most 10 MiB; videos at most 50 MiB. Deletion removes the Storage file and metadata row. JSON export includes rows, not file bytes.
+
+## Routine templates (2026-09-29)
+
+`routine_templates(id, user_id nullable, name, description, days jsonb, created_at)` stores built-in rows with null owner and owner-private saved snapshots. RLS allows authenticated reads of built-ins and own rows; only owners can delete their rows. Inserts occur through `forge_save_routine_template`, not direct client writes. `workout_programs.source_template_id` records the selected source and becomes null if a private saved template is removed. Applying a template creates new program/day/plan rows while retaining archived programs for session history. Reference-media objects are not copied into a template.

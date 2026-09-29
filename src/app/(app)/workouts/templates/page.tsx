@@ -1,0 +1,106 @@
+'use client'
+
+import { useCallback, useEffect, useState, type FormEvent } from 'react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useAuth } from '@/components/auth-provider'
+import { RoutineTemplateChoice } from '@/components/routine-template-choice'
+import { errorMessage } from '@/lib/data'
+import { supabase } from '@/lib/supabase'
+import type { RoutineTemplate } from '@/lib/routine-templates'
+
+export default function RoutineTemplatesPage() {
+  const { user } = useAuth()
+  const router = useRouter()
+  const [templates, setTemplates] = useState<RoutineTemplate[]>([])
+  const [selected, setSelected] = useState('')
+  const [name, setName] = useState('')
+  const [description, setDescription] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
+  const [message, setMessage] = useState('')
+
+  const load = useCallback(async () => {
+    setLoading(true)
+    try {
+      const { data, error: queryError } = await supabase().from('routine_templates')
+        .select('id,user_id,name,description,days,created_at').order('created_at')
+      if (queryError) throw queryError
+      const available = (data ?? []) as RoutineTemplate[]
+      setTemplates(available)
+      setSelected(current => available.some(item => item.id === current) ? current : (available[0]?.id ?? ''))
+    } catch (caught) { setError(errorMessage(caught)) }
+    finally { setLoading(false) }
+  }, [])
+
+  useEffect(() => { if (user) queueMicrotask(() => { void load() }) }, [user, load])
+
+  async function save(event: FormEvent) {
+    event.preventDefault()
+    if (busy || !name.trim()) return
+    setBusy(true); setError(''); setMessage('')
+    try {
+      const { data, error: saveError } = await supabase().rpc('forge_save_routine_template', {
+        p_name: name.trim(), p_description: description.trim() || null,
+      })
+      if (saveError) throw saveError
+      await load()
+      setSelected(data as string)
+      setName(''); setDescription('')
+      setMessage('Your current routine was saved as a private template.')
+    } catch (caught) { setError(errorMessage(caught)) }
+    finally { setBusy(false) }
+  }
+
+  async function apply() {
+    const template = templates.find(item => item.id === selected)
+    if (!template || busy || !window.confirm(`Load ${template.name} as your active routine? Your past workout logs will stay available.`)) return
+    setBusy(true); setError(''); setMessage('')
+    try {
+      const { error: applyError } = await supabase().rpc('forge_apply_routine_template', { p_template_id: template.id })
+      if (applyError) throw applyError
+      router.push('/workouts/routine')
+      router.refresh()
+    } catch (caught) { setError(errorMessage(caught)); setBusy(false) }
+  }
+
+  async function remove() {
+    const template = templates.find(item => item.id === selected)
+    if (!template?.user_id || busy || !window.confirm(`Delete your saved template “${template.name}”? Your active routine and workout logs will remain.`)) return
+    setBusy(true); setError(''); setMessage('')
+    try {
+      const { error: deleteError } = await supabase().from('routine_templates').delete().eq('id', template.id)
+      if (deleteError) throw deleteError
+      setSelected('')
+      await load()
+      setMessage('Saved template deleted.')
+    } catch (caught) { setError(errorMessage(caught)) }
+    finally { setBusy(false) }
+  }
+
+  return <>
+    <Link href="/workouts/routine" className="muted small" style={{ display: 'inline-block', marginBottom: 16 }}>← Edit routine</Link>
+    <div className="page-head"><h1>Routine templates.</h1><p>Load a complete week, or keep a private copy of the routine you built.</p></div>
+    {error && <div className="notice" role="alert" style={{ marginBottom: 16 }}>{error}</div>}
+    {message && <div className="notice success" role="status" style={{ marginBottom: 16 }}>{message}</div>}
+    <section className="card stack">
+      <h2>Choose a routine</h2>
+      {loading ? <p className="muted">Loading templates…</p> : templates.length === 0 ? <p className="muted">No templates found. Apply the latest database migration.</p> : <RoutineTemplateChoice templates={templates} selected={selected} onSelect={setSelected} disabled={busy} />}
+      <div className="row wrap" style={{ justifyContent: 'flex-start' }}>
+        <button className="btn primary" type="button" disabled={busy || !selected} onClick={() => void apply()}>{busy ? 'Working…' : 'Load selected routine'}</button>
+        {templates.find(item => item.id === selected)?.user_id && <button className="btn ghost danger" type="button" disabled={busy} onClick={() => void remove()}>Delete saved template</button>}
+      </div>
+      <p className="muted small" style={{ margin: 0 }}>Loading changes your upcoming schedule. Previous workout sessions stay in History. Private reference media remains attached to your exercises; day videos stay with the old schedule.</p>
+    </section>
+    <section className="card stack" style={{ marginTop: 20 }}>
+      <h2>Save your current routine</h2>
+      <p className="muted" style={{ margin: 0 }}>Edit days and exercises first, then save the full week for reuse.</p>
+      <form className="stack" onSubmit={save}>
+        <div><label htmlFor="template-name">Template name</label><input id="template-name" maxLength={150} required value={name} onChange={event => setName(event.target.value)} placeholder="My workout routine" /></div>
+        <div><label htmlFor="template-description">Description <span className="muted">(optional)</span></label><textarea id="template-description" maxLength={1000} value={description} onChange={event => setDescription(event.target.value)} placeholder="Who or what is this plan for?" /></div>
+        <button className="btn" disabled={busy || !name.trim()} style={{ justifySelf: 'start' }}>Save as template</button>
+      </form>
+    </section>
+  </>
+}

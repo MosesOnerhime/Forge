@@ -25,3 +25,7 @@ Last checked: 2026-09-29. Source of truth: `SOURCE_SPEC.md`, especially the PRD 
 | Exercise reference images and videos | `exercise_reference_media`, private media bucket, routine editor and session viewer | Local implementation, owner-isolation checks, live migration, and Ready production deployment passed. The signed-in mobile picker opened without horizontal overflow; the supplied Cable Lateral Raise upload/playback is blocked by the Edge extension file-URL setting. |
 
 The implementation plan's final test is a real account round trip: create account, finish a workout, log food and measurements, upload photos, write a journal entry, sign out and back in, then verify all records. Local compilation and stubbed PostgreSQL tests do not cover this sequence.
+
+## Routine templates addendum (2026-09-29)
+
+New user request: first-use selection of Runo's provisional routine, a separate beginner plan for the user's mother, and owner-private save/reload of edited routines. Migration 004 and UI implement those paths. Local RPC and live browser evidence are tracked in BUILD_STATUS; do not count code presence as live acceptance.

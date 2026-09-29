@@ -307,3 +307,7 @@ If entering workout or nutrition information becomes tedious, the feature should
 ## Exercise reference media extension (2026-09-29)
 
 Added an exercise-owned media table and private Storage bucket, file validation, resumable video and direct image upload, lazy routine/session disclosures, signed viewing, removal, metadata export, and local RLS/Storage checks. Deployment order: apply migration `202609290003_exercise_reference_media.sql`, deploy the app, then upload the supplied Cable Lateral Raise MP4 through Edit routine and verify signed playback.
+
+## Routine template extension (2026-09-29)
+
+Apply migration 004 before deploying the picker. Verify three built-ins, owner-only saved templates, onboarding choice, blank-week editing, save/reload, active-session rejection, and preserved session history in the local database harness and signed-in browser. Complete mobile and desktop visual checks. The missing original Runo prescriptions and the mother's equipment/health restrictions remain open inputs for plan refinement.

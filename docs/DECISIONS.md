@@ -38,3 +38,11 @@ Do not mark release complete from a local build alone. The [implementation plan]
 The migrations were executed in filename order against a disposable PostgreSQL 16 instance with small Auth and Storage stubs. Tests checked seed counts, RLS visibility, idempotent setup, atomic/idempotent workout start with empty-plan rollback, adjacent routine swaps with injected-failure rollback, previous-performance selection and all-time volume best, and cross-owner isolation and foreign-key rejection. Actual Supabase Auth, Storage uploads and deletion, email redirects, and deployment still require live projects.
 
 - 2026-09-29: The user's Cable Lateral Raise example resolves the earlier scope ambiguity: add media to individual exercises while retaining the scheduled-day video. Allow multiple images and videos per exercise so a user can keep several angles. Keep them in a separate private bucket and owner-scoped table, cap images at 10 MiB and videos at 50 MiB, and use signed viewing on demand.
+
+## Routine template decisions (2026-09-29)
+
+- Keep the old program and its days when a template is loaded because historical sessions retain foreign keys to those days. Only one program is active at a time.
+- Store built-ins and private snapshots in one RLS-protected table. Save the current week through an owner-scoped RPC, and apply a whole template in one transaction.
+- Keep the existing seed as a fallback for account creation; onboarding applies the explicit choice and can reuse that choice on a retry.
+- The mother's starter is a conservative, editable gym-based three-strength-day plan with optional easy walking on recovery days. Her stated 98 kg/5 ft 9 in stay out of the shared template and nutrition defaults. No plan promises reduction in a specific body area. Equipment and any health restrictions remain open inputs.
+- Runo's template copies the existing five-day routine; its sets, reps, and rests remain provisional pending the original workout prescription.

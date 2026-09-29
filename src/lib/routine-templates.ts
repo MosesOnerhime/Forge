@@ -1,0 +1,25 @@
+export type RoutineTemplateDay = {
+  day_of_week: number
+  name: string
+  is_rest_day: boolean
+  estimated_minutes_min: number | null
+  estimated_minutes_max: number | null
+  exercises: { name: string }[]
+}
+
+export type RoutineTemplate = {
+  id: string
+  user_id: string | null
+  name: string
+  description: string | null
+  days: RoutineTemplateDay[]
+  created_at: string
+}
+
+export const routineWeekdays = ['', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+
+export function templateSummary(days: RoutineTemplateDay[]) {
+  const training = days.filter(day => !day.is_rest_day).length
+  const exerciseCount = days.reduce((count, day) => count + day.exercises.length, 0)
+  return `${training} training ${training === 1 ? 'day' : 'days'} · ${exerciseCount} planned exercises`
+}

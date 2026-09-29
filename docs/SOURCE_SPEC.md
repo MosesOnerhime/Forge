@@ -2160,3 +2160,7 @@ If entering workout or nutrition information becomes tedious, the feature should
 The original supplied specification above is preserved. The user subsequently added: “Also make it so that I can upload a reference video for each workout. And update all docs to reflect this.” The working implementation attaches one private reference video to each scheduled workout day; a later clarification below adds media for individual exercises.
 
 The user subsequently clarified on 2026-09-29: upload `C:\Users\moses\Videos\cable lateral raises.mp4` as a test reference for **Cable Lateral Raise**, and permit reference images as well as videos. This extends the earlier workout-day request to individual exercises; the original source text and day-video implementation remain preserved.
+
+## User addendum: routine templates (2026-09-29)
+
+The user asked for the current workout as a selectable ?Runo's Workout Routine? for new users, the ability to create and save a personal routine as a reusable template, and a separate starter routine for the user's mother. Her stated context is approximately 98 kg and 5 ft 9 in, with a goal concerning her arms and stomach. Those personal measurements are not part of a shared template. The starter plan must be editable and must not promise fat loss in a particular body area.

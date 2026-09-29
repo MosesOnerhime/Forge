@@ -155,6 +155,8 @@ end;
 $$;
 
 reset role;
+
+
 create function public.forge_test_fail_reorder() returns trigger
 language plpgsql as $$
 begin
@@ -473,6 +475,75 @@ begin
     values ('11111111-1111-4111-8111-111111111111','33333333-3333-4333-8333-333333333333',current_date,'lunch',100,10,10,2);
     raise exception 'Cross-owner food link was accepted';
   exception when foreign_key_violation then null;
+  end;
+end;
+$$;
+reset role;
+
+-- Templates must copy a full week atomically, preserve historical day links,
+-- and never expose one owner's saved plan to another owner.
+set role authenticated;
+set forge.test_user_id = '11111111-1111-4111-8111-111111111111';
+do $$
+declare saved_id uuid; mom_id uuid; old_program uuid; old_day uuid; new_program uuid;
+begin
+  if (select count(*) from public.routine_templates) <> 3 then
+    raise exception 'Expected three built-in routine templates';
+  end if;
+  if (select sum(jsonb_array_length(day->'exercises'))
+      from public.routine_templates t, jsonb_array_elements(t.days) day
+      where t.name = 'Runo''s Workout Routine') <> 35
+    or (select sum(jsonb_array_length(day->'exercises'))
+      from public.routine_templates t, jsonb_array_elements(t.days) day
+      where t.name = 'Build from scratch') <> 0 then
+    raise exception 'Built-in routine content is incomplete';
+  end if;
+  select id into old_program from public.workout_programs where active;
+  select id into old_day from public.workout_days where program_id = old_program and day_of_week = 1;
+  saved_id := public.forge_save_routine_template('My copy', 'Owner-only snapshot');
+  if (select jsonb_array_length(days) from public.routine_templates where id = saved_id) <> 7 then
+    raise exception 'Saved routine snapshot lacks seven days';
+  end if;
+  update public.workout_sessions set status = 'cancelled'
+    where user_id = auth.uid() and status = 'active';
+  insert into public.workout_sessions (user_id, workout_day_id)
+    values (auth.uid(), old_day);
+  select id into mom_id from public.routine_templates where name = 'Mom''s Starter Routine';
+  begin
+    perform public.forge_apply_routine_template(mom_id);
+    raise exception 'Switched routine during an active workout';
+  exception when raise_exception then
+    if sqlerrm <> 'Finish or cancel your active workout before changing routines' then raise; end if;
+  end;
+  update public.workout_sessions set status = 'cancelled' where workout_day_id = old_day and status = 'active';
+  new_program := public.forge_apply_routine_template(mom_id);
+  if (select count(*) from public.workout_days where program_id = new_program) <> 7
+    or (select count(*) from public.program_exercises pe join public.workout_days d on d.id = pe.workout_day_id where d.program_id = new_program) <> 13
+    or (select count(*) from public.workout_programs where active) <> 1 then
+    raise exception 'Mom routine did not load as a complete active week';
+  end if;
+  if not exists (select 1 from public.workout_sessions where workout_day_id = old_day)
+    or not exists (select 1 from public.workout_programs where id = old_program and not active) then
+    raise exception 'Template switch damaged workout history';
+  end if;
+  if public.forge_apply_routine_template(mom_id, true) <> new_program then
+    raise exception 'Onboarding retry did not reuse the selected program';
+  end if;
+  perform public.forge_apply_routine_template(saved_id);
+  if (select count(*) from public.program_exercises pe join public.workout_days d
+      on d.id = pe.workout_day_id join public.workout_programs p on p.id = d.program_id
+      where p.active) <> 35 then
+    raise exception 'Saved private routine did not reload its exercises';
+  end if;
+  perform set_config('forge.test_user_id', '22222222-2222-4222-8222-222222222222', true);
+  if exists (select 1 from public.routine_templates where id = saved_id) then
+    raise exception 'Another owner can read a private template';
+  end if;
+  begin
+    perform public.forge_apply_routine_template(saved_id);
+    raise exception 'Another owner applied a private template';
+  exception when raise_exception then
+    if sqlerrm <> 'Template not found' then raise; end if;
   end;
 end;
 $$;

@@ -424,3 +424,7 @@ For the initial personal deployment, the existing routine should already be prel
 ## Exercise reference media journey (2026-09-29)
 
 Edit routine -> choose the training day containing an exercise -> expand **Reference images & videos** below that exercise -> choose JPG/PNG/WebP (up to 10 MiB) or MP4/WebM (up to 50 MiB) -> Save reference -> View or Remove. During a workout, expand the same exercise's references and choose View to request a signed private link. Files remain attached to the exercise if its training day changes. The optional workout-day video still appears separately.
+
+## Routine templates flow (2026-09-29)
+
+New account -> onboarding -> choose Runo's plan, Mom's starter, or Build from scratch -> review the seven-day preview -> complete setup -> selected plan becomes active. Existing account -> Workouts -> Edit routine -> Choose or save a template -> select a built-in or private template -> confirm Load -> return to Edit routine. To make a custom template: start blank or edit any active routine, rename and configure each day, add exercises, then Save current routine with a private name. Finish/cancel an active workout before switching. History keeps sessions from previous programs.

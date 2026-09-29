@@ -182,7 +182,7 @@ Text, numeric, select, and textarea controls use the raised fill, divider stroke
 
 ### Navigation
 
-The app has six destinations. On mobile, icon-and-label items occupy a fixed, translucent bottom bar; the active item turns orange. At desktop width, the same navigation becomes a sidebar with horizontal rows and a dark warm active background. The wordmark is uppercase and heavy with an orange period.
+On mobile, Today, Workout, Nutrition, Progress, and More occupy a fixed, translucent bottom bar. More opens a short sheet for History, Journal, Routine, and Settings, with Escape returning focus to its trigger. The active destination turns orange. At desktop width, six direct destinations appear in a sidebar with horizontal rows and a dark warm active background. The wordmark is uppercase and heavy with an orange period.
 
 ### Rest Timer
 

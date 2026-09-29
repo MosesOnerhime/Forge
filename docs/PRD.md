@@ -150,7 +150,7 @@ The following should wait:
 - Apple Health integration.
 - Google Fit / Health Connect integration.
 - Smartwatch application.
-- Exercise video library.
+- A public or shared exercise video library (private exercise reference media is implemented).
 - Community workout marketplace.
 - Payments or subscriptions.
 - Public food database.
@@ -280,3 +280,9 @@ Decisions that can be made after V1 development begins:
 - Whether calorie and macro targets should eventually adjust automatically based on weight trends.
 
 ---
+
+## Exercise reference media addendum (2026-09-29)
+
+The user specified Cable Lateral Raise as the target for a test video and asked for reference images as well. An account owner can attach multiple private JPG, PNG, or WebP images (10 MiB each) and MP4 or WebM videos (50 MiB each) to an individual exercise. The owner can view and remove them in Edit routine; the current exercise's references are available during a session. References follow the exercise across training days and are separate from the single optional workout-day video. File bytes stay in private Storage; JSON export contains metadata.
+
+Acceptance: an owner can upload a supported file, see its name, open a signed image/video link, and see it on the same exercise in a session. Another account cannot read, attach, or delete that media. Unsupported, empty, or oversized files are rejected before upload.

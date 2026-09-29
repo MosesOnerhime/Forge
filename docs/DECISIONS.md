@@ -21,7 +21,7 @@
 - Store a per-user default rest duration for newly added exercises and a browser-notification preference on `profiles`. Existing exercises retain their own configured rest. The timer uses the wall-clock deadline so background-tab throttling cannot lengthen the countdown.
 - Start a workout through an invoker-rights database function so creating the session and copying its planned exercises commit together. The existing unique active-session index makes duplicate starts converge on one resumable session.
 - Reorder routine exercises through the invoker-rights `forge_reorder_program_exercise` function. It locks the owner’s training day and swaps adjacent positions in one database transaction, so a failed request cannot leave the three-step reorder half applied.
-- Interpret the user's “reference video for each workout” request as one optional video per scheduled training day while awaiting clarification about per-exercise videos. Keep files in a separate owner-scoped private bucket, allow MP4/WebM through 50 MiB, use resumable uploads, and sign playback URLs on demand. Replacement creates a new object path before changing the metadata row; failed old-file cleanup is visible for retry.
+- Interpret the user's “reference video for each workout” request first as one optional video per scheduled training day; the later Cable Lateral Raise clarification adds exercise-level media. Keep files in a separate owner-scoped private bucket, allow MP4/WebM through 50 MiB, use resumable uploads, and sign playback URLs on demand. Replacement creates a new object path before changing the metadata row; failed old-file cleanup is visible for retry.
 
 ## External inputs needed for release
 
@@ -36,3 +36,5 @@ Do not mark release complete from a local build alone. The [implementation plan]
 ## Verification boundary
 
 The migrations were executed in filename order against a disposable PostgreSQL 16 instance with small Auth and Storage stubs. Tests checked seed counts, RLS visibility, idempotent setup, atomic/idempotent workout start with empty-plan rollback, adjacent routine swaps with injected-failure rollback, previous-performance selection and all-time volume best, and cross-owner isolation and foreign-key rejection. Actual Supabase Auth, Storage uploads and deletion, email redirects, and deployment still require live projects.
+
+- 2026-09-29: The user's Cable Lateral Raise example resolves the earlier scope ambiguity: add media to individual exercises while retaining the scheduled-day video. Allow multiple images and videos per exercise so a user can keep several angles. Keep them in a separate private bucket and owner-scoped table, cap images at 10 MiB and videos at 50 MiB, and use signed viewing on demand.

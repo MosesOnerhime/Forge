@@ -336,3 +336,7 @@ V1:
 No elaborate illustration library is required.
 
 ---
+
+### Exercise reference media addendum (2026-09-29)
+
+The user wants images as well as videos, with Cable Lateral Raise as a concrete exercise example. Keep these references on the exercise rather than the day. Place management next to that exercise in Edit routine and keep viewing one action away inside a session. Open images and videos on demand; keep their controls secondary to the set form. Preserve the separate day overview video.

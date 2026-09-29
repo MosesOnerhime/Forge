@@ -19,6 +19,10 @@ export function workoutVideoPath(userId: string, dayId: string, file: File): str
 export async function uploadWorkoutVideo(file: File, path: string, onProgress: (percent: number) => void): Promise<void> {
   const validationError = workoutVideoError(file)
   if (validationError) throw new Error(validationError)
+  await uploadResumableVideo(file, WORKOUT_VIDEO_BUCKET, path, onProgress)
+}
+
+export async function uploadResumableVideo(file: File, bucket: string, path: string, onProgress: (percent: number) => void): Promise<void> {
   const client = supabase()
   const { data, error } = await client.auth.getSession()
   if (error) throw error
@@ -32,7 +36,7 @@ export async function uploadWorkoutVideo(file: File, path: string, onProgress: (
       endpoint: `${storageOrigin}/storage/v1/upload/resumable`,
       headers: { authorization: `Bearer ${data.session!.access_token}` },
       metadata: {
-        bucketName: WORKOUT_VIDEO_BUCKET,
+        bucketName: bucket,
         objectName: path,
         contentType: file.type,
         cacheControl: '3600',

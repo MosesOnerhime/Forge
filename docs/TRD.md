@@ -296,3 +296,7 @@ Database migrations must be stored in source control.
 **Tradeoff:** New foods require manual entry.
 
 ---
+
+## Exercise reference media (2026-09-29)
+
+`202609290003_exercise_reference_media.sql` adds owner-scoped `exercise_reference_media` with a composite `(exercise_id, user_id)` foreign key to `exercises`, path checks for owner and exercise IDs, MIME and size constraints, and RLS. The private `exercise-reference-media` bucket accepts JPG/PNG/WebP and MP4/WebM, with a 50 MiB bucket cap; the table and client cap images at 10 MiB. Storage object policies restrict owner-folder reads, inserts, and deletes. Videos use the existing resumable TUS client; images use Storage upload. Metadata is inserted after the file, failed inserts trigger cleanup, and ambiguous saves are checked by path. Signed URLs are requested on View. JSON export includes metadata only.

@@ -25,3 +25,7 @@ Forge is a private gym, nutrition, and physique progress tracker for someone fol
 - Body data and photos are private to their owner.
 
 Source of truth: [docs/SOURCE_SPEC.md](docs/SOURCE_SPEC.md). Decisions and gaps: [docs/DECISIONS.md](docs/DECISIONS.md).
+
+## Exercise references (2026-09-29)
+
+A user can attach private reference images and videos to an individual exercise. The same references appear wherever that exercise is scheduled or logged; they do not move with a workout day. The routine editor manages these files, and the session shows them on demand without loading media during set logging. The scheduled-day overview video remains separate.

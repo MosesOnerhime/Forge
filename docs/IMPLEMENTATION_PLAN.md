@@ -303,3 +303,7 @@ The main development principle for Forge is:
 **Logging should always be faster than thinking about logging.**
 
 If entering workout or nutrition information becomes tedious, the feature should be simplified rather than adding more complexity.
+
+## Exercise reference media extension (2026-09-29)
+
+Added an exercise-owned media table and private Storage bucket, file validation, resumable video and direct image upload, lazy routine/session disclosures, signed viewing, removal, metadata export, and local RLS/Storage checks. Deployment order: apply migration `202609290003_exercise_reference_media.sql`, deploy the app, then upload the supplied Cable Lateral Raise MP4 through Edit routine and verify signed playback.

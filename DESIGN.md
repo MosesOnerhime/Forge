@@ -219,3 +219,7 @@ The selected training day has an optional reference-video card in Edit routine. 
 
 - **Don't** turn orange into a page-wide fill or use it for routine body text.
 - **Don't** add pronounced card shadows to ordinary content panels.
+
+### Exercise reference images and videos
+
+Each routine exercise has a compact **Reference images & videos** disclosure below its prescription. Opening it loads a list of saved media and the upload control; the closed state causes no media request. JPG/PNG/WebP images and MP4/WebM videos are displayed only after the user chooses View, using a signed private link. The session reuses the disclosure in read-only mode. Filenames wrap, actions remain reachable at mobile widths, progress and errors stay in context, and the form is secondary to set logging.

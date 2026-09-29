@@ -26,6 +26,12 @@ begin
       and file_size_limit = 52428800
       and allowed_mime_types = array['video/mp4', 'video/webm']
   ) then raise exception 'Private workout video bucket is missing or misconfigured'; end if;
+  if not exists (
+    select 1 from storage.buckets
+    where id = 'exercise-reference-media' and not public
+      and file_size_limit = 52428800
+      and allowed_mime_types = array['image/jpeg', 'image/png', 'image/webp', 'video/mp4', 'video/webm']
+  ) then raise exception 'Private exercise media bucket is missing or misconfigured'; end if;
 end;
 $$;
 
@@ -324,12 +330,19 @@ insert into public.workout_reference_videos
 select day.user_id, day.id, day.user_id::text || '/' || day.id::text || '/rls-probe.mp4',
   'RLS probe.mp4', 'video/mp4', 1024
 from public.workout_days day where day.day_of_week = 1;
+insert into public.exercise_reference_media
+  (user_id, exercise_id, storage_path, original_name, mime_type, file_size_bytes)
+select exercise.user_id, exercise.id, exercise.user_id::text || '/' || exercise.id::text || '/rls-probe.jpg',
+  'RLS probe.jpg', 'image/jpeg', 1024
+from public.exercises exercise where exercise.name = 'Weighted Pull-ups';
 insert into public.journal_entries (user_id, entry_date, content)
 select id, current_date, 'RLS probe entry' from auth.users;
 insert into storage.objects (bucket_id, name)
 select 'progress-photos', id::text || '/rls-probe.jpg' from auth.users;
 insert into storage.objects (bucket_id, name)
 select 'workout-reference-videos', storage_path from public.workout_reference_videos;
+insert into storage.objects (bucket_id, name)
+select 'exercise-reference-media', storage_path from public.exercise_reference_media;
 
 set role authenticated;
 set forge.test_user_id = '11111111-1111-4111-8111-111111111111';
@@ -340,7 +353,7 @@ begin
     'profiles', 'goals', 'workout_programs', 'workout_days', 'exercises',
     'program_exercises', 'workout_sessions', 'session_exercises', 'workout_sets',
     'nutrition_targets', 'foods', 'food_entries', 'body_measurements',
-    'progress_photos', 'workout_reference_videos', 'journal_entries'
+    'progress_photos', 'workout_reference_videos', 'exercise_reference_media', 'journal_entries'
   ] loop
     if not exists (
       select 1 from pg_class relation
@@ -376,6 +389,9 @@ begin
   if (select count(*) from storage.objects where bucket_id = 'workout-reference-videos') <> 1 then
     raise exception 'Private workout video read isolation failed';
   end if;
+  if (select count(*) from storage.objects where bucket_id = 'exercise-reference-media') <> 1 then
+    raise exception 'Private exercise media read isolation failed';
+  end if;
   delete from storage.objects where name = '22222222-2222-4222-8222-222222222222/rls-probe.jpg';
   get diagnostics affected = row_count;
   if affected <> 0 then raise exception 'Private Storage delete isolation failed'; end if;
@@ -383,6 +399,10 @@ begin
     and name like '22222222-2222-4222-8222-222222222222/%';
   get diagnostics affected = row_count;
   if affected <> 0 then raise exception 'Private workout video delete isolation failed'; end if;
+  delete from storage.objects where bucket_id = 'exercise-reference-media'
+    and name like '22222222-2222-4222-8222-222222222222/%';
+  get diagnostics affected = row_count;
+  if affected <> 0 then raise exception 'Private exercise media delete isolation failed'; end if;
   begin
     insert into storage.objects (bucket_id, name)
     values ('progress-photos', '22222222-2222-4222-8222-222222222222/forged.jpg');
@@ -393,6 +413,12 @@ begin
     insert into storage.objects (bucket_id, name)
     values ('workout-reference-videos', '22222222-2222-4222-8222-222222222222/forged/video.mp4');
     raise exception 'Private workout video bucket accepted a forged-owner insert';
+  exception when insufficient_privilege then null;
+  end;
+  begin
+    insert into storage.objects (bucket_id, name)
+    values ('exercise-reference-media', '22222222-2222-4222-8222-222222222222/forged/image.jpg');
+    raise exception 'Private exercise media bucket accepted a forged-owner insert';
   exception when insufficient_privilege then null;
   end;
 end;
@@ -414,6 +440,24 @@ begin
       'forged.mp4', 'video/mp4', 1024
     );
     raise exception 'Cross-owner workout video attachment was accepted';
+  exception when foreign_key_violation then null;
+  end;
+end;
+$$;
+do $$
+declare foreign_exercise_id uuid;
+begin
+  perform set_config('forge.test_user_id', '22222222-2222-4222-8222-222222222222', true);
+  select id into foreign_exercise_id from public.exercises where name = 'Weighted Pull-ups';
+  perform set_config('forge.test_user_id', '11111111-1111-4111-8111-111111111111', true);
+  if foreign_exercise_id is null then raise exception 'Cross-owner exercise fixture is missing'; end if;
+  begin
+    insert into public.exercise_reference_media
+      (user_id, exercise_id, storage_path, original_name, mime_type, file_size_bytes)
+    values ('11111111-1111-4111-8111-111111111111', foreign_exercise_id,
+      '11111111-1111-4111-8111-111111111111/' || foreign_exercise_id::text || '/forged.jpg',
+      'forged.jpg', 'image/jpeg', 1024);
+    raise exception 'Cross-owner exercise reference was accepted';
   exception when foreign_key_violation then null;
   end;
 end;

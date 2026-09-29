@@ -2157,4 +2157,6 @@ If entering workout or nutrition information becomes tedious, the feature should
 
 ## User addendum (2026-09-29)
 
-The original supplied specification above is preserved. The user subsequently added: “Also make it so that I can upload a reference video for each workout. And update all docs to reflect this.” The working implementation attaches one private reference video to each scheduled workout day; clarification is pending on whether the user also wants a video for each individual exercise.
+The original supplied specification above is preserved. The user subsequently added: “Also make it so that I can upload a reference video for each workout. And update all docs to reflect this.” The working implementation attaches one private reference video to each scheduled workout day; a later clarification below adds media for individual exercises.
+
+The user subsequently clarified on 2026-09-29: upload `C:\Users\moses\Videos\cable lateral raises.mp4` as a test reference for **Cable Lateral Raise**, and permit reference images as well as videos. This extends the earlier workout-day request to individual exercises; the original source text and day-video implementation remain preserved.

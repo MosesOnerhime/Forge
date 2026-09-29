@@ -420,3 +420,7 @@ Today Dashboard
 For the initial personal deployment, the existing routine should already be preloaded.
 
 ---
+
+## Exercise reference media journey (2026-09-29)
+
+Edit routine -> choose the training day containing an exercise -> expand **Reference images & videos** below that exercise -> choose JPG/PNG/WebP (up to 10 MiB) or MP4/WebM (up to 50 MiB) -> Save reference -> View or Remove. During a workout, expand the same exercise's references and choose View to request a signed private link. Files remain attached to the exercise if its training day changes. The optional workout-day video still appears separately.

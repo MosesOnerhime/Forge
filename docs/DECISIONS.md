@@ -26,9 +26,8 @@
 ## External inputs needed for release
 
 - Original workout prescription with exact sets, rep ranges, rest periods, and any warm-up rules.
-- Development and production Supabase projects and environment values.
-- Vercel account and project for preview and production deployment.
-- GitHub repository and any desired custom domain.
+- A separate development Supabase project and preview environment; the existing configured project is production.
+- Any desired custom domain for the live Vercel project.
 - Production backup, monitoring, and analytics choices.
 - A signed-in test account for live video upload/playback checks. The configured Supabase project now has the video table and private bucket.
 

@@ -118,6 +118,7 @@ create table public.session_exercises (
   foreign key (exercise_id, user_id) references public.exercises(id, user_id),
   foreign key (program_exercise_id, user_id) references public.program_exercises(id, user_id)
 );
+create index session_exercises_user_exercise on public.session_exercises(user_id, exercise_id);
 
 create table public.workout_sets (
   id uuid primary key default gen_random_uuid(),
@@ -224,6 +225,7 @@ create table public.journal_entries (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+create index journal_entries_user_date on public.journal_entries(user_id, entry_date desc);
 
 create function public.forge_touch_updated_at()
 returns trigger language plpgsql set search_path = '' as $$

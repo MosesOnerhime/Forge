@@ -227,3 +227,5 @@ Each routine exercise has a compact **Reference images & videos** disclosure bel
 ### Routine templates
 
 First use presents a single-choice list with each plan's purpose, training-day count, exercise count, and a seven-day preview for the selected choice. Template management stays behind Edit routine, where Save current routine and Load selected routine are explicit actions. Day details sit in a disclosure above the selected day's exercises so the main logging plan remains scannable. The starter plan's copy avoids a promise of targeted fat loss and does not use Runo's nutrition targets.
+
+The development-only `/design-preview/templates` route renders this chooser with labeled sample data. Its 390px Runo and Mom states and 1440px desktop state were captured in `docs/screenshots/`; the checked mobile document width did not exceed the viewport.

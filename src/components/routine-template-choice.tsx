@@ -15,11 +15,12 @@ export function RoutineTemplateChoice({ templates, selected, onSelect, disabled 
     {templates.map(template => <label className="item" key={template.id} style={{ cursor: disabled ? 'default' : 'pointer' }}>
       <span className="row" style={{ justifyContent: 'flex-start', alignItems: 'flex-start' }}>
         <input type="radio" name="routine-template" value={template.id} checked={selected === template.id}
+          aria-label={template.name} aria-describedby={`template-description-${template.id} template-summary-${template.id}`}
           disabled={disabled} onChange={() => onSelect(template.id)} style={{ width: 20, flex: 'none', marginTop: 4 }} />
         <span className="stack" style={{ gap: 7 }}>
           <strong>{template.name}</strong>
-          <span className="muted small">{template.description}</span>
-          <span className="muted small">{templateSummary(template.days)}</span>
+          <span id={`template-description-${template.id}`} className="muted small">{template.description}</span>
+          <span id={`template-summary-${template.id}`} className="muted small">{templateSummary(template.days)}</span>
         </span>
       </span>
       {selected === template.id && <div className="stack" style={{ gap: 4, marginTop: 12, paddingLeft: 32 }}>

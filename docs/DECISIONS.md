@@ -33,4 +33,4 @@ Do not mark release complete from a local build alone. The [implementation plan]
 
 ## Verification boundary
 
-The current migration was executed against a disposable PostgreSQL 16 instance with small Auth and Storage stubs. Tests checked seed counts, RLS visibility, idempotent setup, the previous-performance RPC's latest-session selection, all-time set-volume best, and cross-owner isolation, and cross-owner foreign-key rejection. Actual Supabase Auth, Storage uploads, email redirects, and deployment still require live projects.
+The current migration was executed against a disposable PostgreSQL 16 instance with small Auth and Storage stubs. Tests checked seed counts, RLS visibility, idempotent setup, atomic/idempotent workout start with empty-plan rollback, previous-performance selection and all-time volume best, and cross-owner isolation and foreign-key rejection. Actual Supabase Auth, Storage uploads and deletion, email redirects, and deployment still require live projects.

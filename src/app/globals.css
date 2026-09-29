@@ -21,7 +21,7 @@ button:focus-visible,a:focus-visible { outline:2px solid var(--amber); outline-o
 .sidebar { display:none; }
 .main { max-width:1200px; margin:auto; padding:24px 18px 72px; }
 .bottom-nav { position:fixed; z-index:20; bottom:0; left:0; right:0; display:flex; justify-content:space-around; background:#111419f5; border-top:1px solid var(--line); backdrop-filter:blur(16px); padding:8px 4px max(8px,env(safe-area-inset-bottom)); }
-.nav-link { min-width:56px; display:flex; flex-direction:column; align-items:center; gap:3px; color:var(--muted); font-size:10px; font-weight:700; }
+.nav-link { min-width:56px; min-height:44px; display:flex; flex-direction:column; align-items:center; gap:3px; color:var(--muted); font-size:10px; font-weight:700; }
 .nav-link.active { color:var(--accent); }
 .brand { font-size:20px; font-weight:950; letter-spacing:-.04em; text-transform:uppercase; }
 .brand span { color:var(--accent); }
@@ -51,7 +51,7 @@ p { line-height:1.5; }
 .btn.primary:hover { background:#ff824d; }
 .btn.ghost { background:transparent; }
 .btn.danger { color:#ff998a; }
-.btn.small { min-height:36px; padding:7px 11px; font-size:12px; }
+.btn.small { min-width:44px; min-height:44px; padding:7px 11px; font-size:12px; }
 .full { width:100%; }
 .pill { display:inline-flex; align-items:center; gap:5px; border-radius:100px; background:#252a31; color:var(--muted); padding:6px 10px; font-size:11px; font-weight:800; white-space:nowrap; }
 .pill.orange { background:#47281d; color:#ffae87; }
@@ -72,7 +72,7 @@ p { line-height:1.5; }
 .success { border-color:#285039; background:#183529; color:#a9ebc4; }
 .empty { padding:26px; text-align:center; color:var(--muted); border:1px dashed var(--line); border-radius:14px; }
 .tab-list { display:flex; gap:8px; overflow-x:auto; padding-bottom:4px; }
-.tab { flex:0 0 auto; border:1px solid var(--line); border-radius:10px; background:var(--surface); color:var(--muted); padding:9px 13px; font-weight:800; font-size:12px; }
+.tab { flex:0 0 auto; min-height:44px; border:1px solid var(--line); border-radius:10px; background:var(--surface); color:var(--muted); padding:9px 13px; font-weight:800; font-size:12px; }
 .tab.active { color:var(--text); border-color:var(--accent); background:#3c251d; }
 .auth-wrap { min-height:100vh; display:grid; place-items:center; padding:24px; background:radial-gradient(circle at 50% 0%,#3c221a 0,#0b0d10 45%); }
 .auth-card { width:min(100%,430px); }

@@ -89,7 +89,7 @@ function SetupForm() {
     if (!goal.trim()) { setError('Add a fitness goal to continue.'); return }
     if (Object.values(targets).some(value => !Number.isFinite(value) || value < 0)) { setError('Enter non-negative nutrition targets.'); return }
     if ([weight, waist].some(value => value !== '' && (!Number.isFinite(Number(value)) || Number(value) <= 0))) { setError('Starting measurements must be greater than zero.'); return }
-    if (photo && (!['image/jpeg', 'image/png', 'image/webp'].includes(photo.type) || photo.size > 10 * 1024 * 1024)) { setError('Use a JPG, PNG, or WebP photo under 10 MB.'); return }
+    if (photo && (!['image/jpeg', 'image/png', 'image/webp'].includes(photo.type) || photo.size === 0 || photo.size > 10 * 1024 * 1024)) { setError('Use a non-empty JPG, PNG, or WebP photo under 10 MB.'); return }
     setBusy(true)
     try {
       const client = supabase()
@@ -122,7 +122,11 @@ function SetupForm() {
         const { error: uploadError } = await client.storage.from('progress-photos').upload(path, photo, { contentType: photo.type })
         if (uploadError) throw uploadError
         const { error: rowError } = await client.from('progress_photos').insert({ user_id: user.id, photo_date: today, view_type: photoView, storage_path: path })
-        if (rowError) { await client.storage.from('progress-photos').remove([path]); throw rowError }
+        if (rowError) {
+          const { error:cleanupError } = await client.storage.from('progress-photos').remove([path])
+          if (cleanupError) throw new Error(`Photo could not be saved and file cleanup failed: ${cleanupError.message}`)
+          throw rowError
+        }
         setPhoto(null)
         const input = document.getElementById('starting-photo') as HTMLInputElement | null
         if (input) input.value = ''

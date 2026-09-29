@@ -166,7 +166,7 @@ Cards have gently rounded 16px corners; fields use 12px; standard buttons use 11
 
 ### Buttons
 
-The shared button pattern is bold, compact, and normally at least 44px tall. Primary buttons carry orange fill and dark text. Secondary buttons sit on the raised control color; ghost buttons remove the fill. Hover changes the fill over 150ms, press scales to 97%, disabled controls fade, and keyboard focus receives an amber outline. A `small` variant is 36px tall in the current code, so do not treat every instance as a verified 44px touch target.
+The shared button pattern is bold, compact, and at least 44px tall and wide where compact. Primary buttons carry orange fill and dark text. Secondary buttons sit on the raised control color; ghost buttons remove the fill. Hover changes the fill over 150ms, press scales to 97%, disabled controls fade, and keyboard focus receives an amber outline. The compact button variant, tabs, and navigation links have a 44px minimum target; browser/device verification is still pending.
 
 ### Chips
 

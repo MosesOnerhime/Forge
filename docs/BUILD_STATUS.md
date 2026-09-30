@@ -1,6 +1,6 @@
 # Build status
 
-Last updated: 2026-09-29
+Last updated: 2026-09-30
 
 | Milestone | Status | Evidence / next work |
 | --- | --- | --- |
@@ -97,3 +97,5 @@ The source did not include exact sets, rep ranges, and rest prescriptions. Seed 
 - 2026-09-30: GitHub Actions run `36657335269` passed both `app` and `database` jobs on commit `d434178`; Vercel status is success. The separate Supabase Preview check for the configured production project still fails at `profiles` creation. The new CI job proves clean migration application and local-harness isolation under PostgreSQL 16, not the current production ledger or live Auth/Storage behavior.
 
 - 2026-09-30: Browser control recovered and the signed-in production SQL Editor showed an empty `supabase_migrations.schema_migrations` ledger. Read-only checks found all 18 expected tables with RLS, 17 owner policies, 12 named indexes, five triggers, three private buckets, nine media policies, the routine RPCs, and three built-in templates with 35/13/0 exercises. `forge_seed_user(uuid)` still inserted a nutrition target, so migration 005 was not applied. A guarded atomic SQL block recorded only migrations 001–004 as applied; a follow-up query returned exactly five rows. No account records or Storage objects were changed. The next GitHub push should let the Supabase integration apply migration 005; remote deployment and new-user behavior remain to verify.
+
+- 2026-09-30: Commit `d61b7cc` passed GitHub app and database jobs plus Supabase Preview. The production SQL Editor then returned all six migration ledger versions, including `202609290005 nutrition_target_choice`, and `forge_seed_user(uuid)` no longer contains the nutrition-target insert. This verifies remote migration 005, not a new-account onboarding round trip. Retried the exact `C:\Users\moses\Videos\cable lateral raises.mp4` selection in the signed-in Cable Lateral Raise form. Edge's ChatGPT extension again rejected `fileChooser.setFiles` with its **Allow access to file URLs** instruction, before any upload. The user needs to enable that extension setting manually; the agent's browser-control policy blocks changing it. The routine page remains open at the exercise media form.

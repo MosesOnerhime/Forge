@@ -26,7 +26,7 @@ The preview uses labeled sample data. Run `node scripts/capture_preview.mjs` whi
 - The original supplied specification is preserved in [docs/SOURCE_SPEC.md](docs/SOURCE_SPEC.md). Six working documents split from it live in `docs/`.
 - [docs/DECISIONS.md](docs/DECISIONS.md) records assumptions, especially provisional exercise sets, reps, and rest durations.
 - [docs/BUILD_STATUS.md](docs/BUILD_STATUS.md) tracks implementation and verification.
-- [docs/SUPABASE_MIGRATION_RECOVERY.md](docs/SUPABASE_MIGRATION_RECOVERY.md) records the current Supabase migration-history conflict and safe read-only checks.
+- [docs/SUPABASE_MIGRATION_RECOVERY.md](docs/SUPABASE_MIGRATION_RECOVERY.md) records the repaired Supabase migration history, production verification, and remaining signup check.
 - [DESIGN.md](DESIGN.md) and `.impeccable/design.json` record the implemented visual system and current review limits.
 - [AGENTS.md](AGENTS.md) records agent workflow and the Claude/Codex design setup.
 
@@ -54,4 +54,4 @@ Apply `202609290004_routine_templates.sql` after migration 003. New users choose
 
 The configured Supabase project has migration 004 applied, and the production UI is deployed. A signed-in save/reload of a private template passed. New-account selection and a live routine switch still need end-to-end checking. For responsive layout review only, development mode exposes `/design-preview/templates`; production returns 404.
 
-Migration `202609290005_nutrition_target_choice.sql` removes Runo's nutrition defaults from new account creation. Onboarding offers his figures only when his plan is selected; everyone else enters their own targets. Today and Nutrition show logged amounts without a goal until a target is saved. Existing targets are preserved. The configured project's migration ledger now records migrations 001–004 after a guarded repair; migration 005 still needs the next Supabase GitHub deployment and a real new-account check before target isolation is considered live.
+Migration `202609290005_nutrition_target_choice.sql` removes Runo's nutrition defaults from new account creation. Onboarding offers his figures only when his plan is selected; everyone else enters their own targets. Today and Nutrition show logged amounts without a goal until a target is saved. Existing targets are preserved. The configured project's ledger records all six migrations, Supabase Preview passed on `d61b7cc`, and the live seed function no longer inserts a nutrition target. A real new-account onboarding check remains.

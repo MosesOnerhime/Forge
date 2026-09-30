@@ -111,3 +111,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - 2026-09-30: The first Verify run failed at `npm ci` before any code checks. Added install-error annotations for the next run; local offline dry-run of `npm ci` passed. GitHub's separate Supabase Preview check failed with `relation "profiles" already exists` in initial migration, indicating remote migration history needs inspection before relying on automatic database deployment. The browser-control connection is still unavailable, and no remote repair was attempted.
 
 - 2026-09-30: The second Verify run again failed at `npm ci`; the public annotations showed only npm's usage footer. Local Linux-platform dry-run passed. Updated diagnostics to annotate the first 10 lines of npm output on the next run.
+
+- 2026-09-30: The third Verify run identified missing `@emnapi/core@1.11.3` and `@emnapi/runtime@1.11.3` lock entries. Added exact dev dependencies and regenerated the lockfile; a local Linux-platform `npm ci` dry run passed. Verify the next GitHub run before treating CI as green.
+
+- 2026-09-30: Local typecheck, lint, 32 tests, and build passed after the lockfile repair. The Linux GitHub workflow still needs its own passing run.

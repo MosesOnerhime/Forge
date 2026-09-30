@@ -145,3 +145,5 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - 2026-09-30: Follow-up visual review found the media dialog at the desktop viewport corner. Added fixed centering; deploy and visually recheck it. See `docs/BUILD_STATUS.md`.
 
 - 2026-09-30: Final app commit `3f55251` passed GitHub app/database/Supabase Preview and Vercel checks. Signed-in desktop and 390px mobile checks showed the supplied MP4 playing in a centered dialog without horizontal overflow; the corrected blank-template guide was visible. Browser viewport was reset. The user's signup error comes from Supabase's built-in two-Auth-emails-per-hour limit; custom SMTP is deferred by the user, and no Auth configuration was changed. Remaining live proof is listed in `docs/BUILD_STATUS.md`.
+
+- 2026-09-30: Signed-in production Workouts at 390px showed the Wednesday exercise reference tiles inline with no page overflow. Browser viewport reset after the read-only check. See `docs/BUILD_STATUS.md`.

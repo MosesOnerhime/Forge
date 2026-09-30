@@ -121,3 +121,5 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - 2026-09-30: Hardened Journal and Goals read/write error paths, with busy-state release and action-specific recovery messages. Rendered tests cover rejected Journal deletion and Goals toggle followed by retry. `DESIGN.md` records the UI error-state review. Live signed-in verification remains.
 
 - 2026-09-30: Typecheck, lint, all 34 tests, and production build passed after the Journal/Goals change. Live browser/account verification remains blocked by the browser-control connection.
+
+- 2026-09-30: Pushed Journal/Goals correction `fbe0721`. GitHub Actions Verify run `36656954075` and Vercel status passed; Supabase Preview still fails on initial migration. Authenticated write/reload QA remains open.

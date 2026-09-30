@@ -87,3 +87,5 @@ The source did not include exact sets, rep ranges, and rest prescriptions. Seed 
 - 2026-09-30: Found uncaught network rejections in Journal deletion and Goals toggle/deletion. Those actions now show contextual errors, disable competing controls while busy, and support retry. Initial reads report failure; save operations distinguish write failure from a successful write whose list refresh failed. Rendered tests cover failed Journal delete and Goals toggle followed by successful retries. Live account persistence and slow-network behavior remain unverified.
 
 - 2026-09-30: After Journal/Goals hardening, typecheck, lint, all 34 tests, and production build passed locally. These tests use controlled requests; live Supabase persistence still needs a signed-in round trip.
+
+- 2026-09-30: Pushed Journal/Goals correction as `fbe0721`. GitHub Actions Verify run `36656954075` and Vercel status passed; the separate Supabase Preview check still fails on the initial migration. The worktree was clean after the push. This confirms deployment and automated checks, not authenticated save/delete behavior.

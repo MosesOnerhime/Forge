@@ -22,8 +22,7 @@ jobs:
           if npm ci > npm-install.log 2>&1; then
             cat npm-install.log
           else
-            grep -E '^(npm error|npm ERR!)' npm-install.log | tail -n 10 | sed 's/^/::error::/' || true
-            tail -n 5 npm-install.log | sed 's/^/::error::/'
+            head -n 10 npm-install.log | sed 's/^/::error::/'
             exit 1
           fi
       - run: npm run typecheck

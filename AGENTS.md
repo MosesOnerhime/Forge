@@ -109,3 +109,5 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - 2026-09-30: Added a GitHub Actions app gate for PRs and `main` pushes: install, typecheck, lint, test, and build on Node.js 24. Check the first remote run before calling CI verified. This does not cover PostgreSQL RLS or signed-in browser journeys.
 
 - 2026-09-30: The first Verify run failed at `npm ci` before any code checks. Added install-error annotations for the next run; local offline dry-run of `npm ci` passed. GitHub's separate Supabase Preview check failed with `relation "profiles" already exists` in initial migration, indicating remote migration history needs inspection before relying on automatic database deployment. The browser-control connection is still unavailable, and no remote repair was attempted.
+
+- 2026-09-30: The second Verify run again failed at `npm ci`; the public annotations showed only npm's usage footer. Local Linux-platform dry-run passed. Updated diagnostics to annotate the first 10 lines of npm output on the next run.

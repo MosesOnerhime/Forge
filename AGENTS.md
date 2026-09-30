@@ -129,3 +129,5 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - 2026-09-30: The existing Windows PostgreSQL 16 harness passed again with all migrations after the CI job was added; its temporary cluster was removed. The Linux service job still needs a remote passing run.
 
 - 2026-09-30: GitHub Actions run `36657335269` passed both app and PostgreSQL database jobs for `d434178`, and Vercel status is success. Supabase Preview still fails at initial `profiles` creation in the production project. Clean CI migrations do not resolve that remote ledger mismatch.
+
+- 2026-09-30: Browser control recovered. Production SQL Editor confirmed the Supabase migration ledger had zero rows, while the 18 owner-private tables, policies, indexes, triggers, media buckets, RPCs, and built-in templates from migrations 001–004 were present. The old `forge_seed_user(uuid)` still inserted a target. A guarded atomic SQL block marked only migrations 001–004 applied; a read-back returned those five versions. See `docs/SUPABASE_MIGRATION_RECOVERY.md`. Migration 005 remains pending for the next Supabase GitHub deployment and live signup proof.

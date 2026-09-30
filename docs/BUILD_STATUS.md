@@ -89,3 +89,7 @@ The source did not include exact sets, rep ranges, and rest prescriptions. Seed 
 - 2026-09-30: After Journal/Goals hardening, typecheck, lint, all 34 tests, and production build passed locally. These tests use controlled requests; live Supabase persistence still needs a signed-in round trip.
 
 - 2026-09-30: Pushed Journal/Goals correction as `fbe0721`. GitHub Actions Verify run `36656954075` and Vercel status passed; the separate Supabase Preview check still fails on the initial migration. The worktree was clean after the push. This confirms deployment and automated checks, not authenticated save/delete behavior.
+
+- 2026-09-30: Added a separate GitHub Actions PostgreSQL 16 job that applies `scripts/local_db_bootstrap.sql`, all six migrations in filename order, and `scripts/local_db_checks.sql`. It runs against an ephemeral service container and checks owner isolation without production credentials. The first remote database job must pass before counting this CI gate as verified; the production Supabase migration-history conflict remains separate.
+
+- 2026-09-30: Re-ran the local PostgreSQL 16 harness after adding the CI job; all migrations and owner-isolation checks passed, and the disposable cluster stopped and was removed. GitHub's new service job remains unverified until its first run.

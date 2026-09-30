@@ -29,3 +29,28 @@ jobs:
       - run: npm run lint
       - run: npm test
       - run: npm run build
+
+  database:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: forge_test
+          POSTGRES_PASSWORD: forge_test
+          POSTGRES_DB: forge_migration_test
+        options: >-
+          --health-cmd "pg_isready -U forge_test -d forge_migration_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    steps:
+      - uses: actions/checkout@v7
+      - name: Apply migrations and check owner isolation
+        run: |
+          for file in scripts/local_db_bootstrap.sql supabase/migrations/*.sql scripts/local_db_checks.sql; do
+            echo "Checking $file"
+            docker exec -i '${{ job.services.postgres.id }}' psql -X -v ON_ERROR_STOP=1 -U forge_test -d forge_migration_test < "$file"
+          done

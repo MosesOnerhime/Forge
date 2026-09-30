@@ -123,3 +123,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - 2026-09-30: Typecheck, lint, all 34 tests, and production build passed after the Journal/Goals change. Live browser/account verification remains blocked by the browser-control connection.
 
 - 2026-09-30: Pushed Journal/Goals correction `fbe0721`. GitHub Actions Verify run `36656954075` and Vercel status passed; Supabase Preview still fails on initial migration. Authenticated write/reload QA remains open.
+
+- 2026-09-30: Added a separate PostgreSQL 16 service job to `.github/workflows/verify.yml` to apply every migration and run `scripts/local_db_checks.sql` on pull requests and `main` pushes. Verify its first remote run before calling the database CI gate green. This does not repair the production Supabase ledger.
+
+- 2026-09-30: The existing Windows PostgreSQL 16 harness passed again with all migrations after the CI job was added; its temporary cluster was removed. The Linux service job still needs a remote passing run.

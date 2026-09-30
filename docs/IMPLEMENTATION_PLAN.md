@@ -306,7 +306,7 @@ If entering workout or nutrition information becomes tedious, the feature should
 
 ## Exercise reference media extension (2026-09-29)
 
-Added an exercise-owned media table and private Storage bucket, file validation, resumable video and direct image upload, lazy routine/session disclosures, signed viewing, removal, metadata export, and local RLS/Storage checks. Deployment order: apply migration `202609290003_exercise_reference_media.sql`, deploy the app, then upload the supplied Cable Lateral Raise MP4 through Edit routine and verify signed playback.
+Added an exercise-owned media table and private Storage bucket, file validation, resumable video and direct image upload, lazy routine/session disclosures, signed viewing, removal, metadata export, and local RLS/Storage checks. Migration `202609290003_exercise_reference_media.sql` and the app are deployed. On 2026-09-30, the supplied Cable Lateral Raise MP4 was uploaded through Edit routine, played through a signed source, and remained after reload. Image upload, session viewer, and cross-account live checks remain.
 
 ## Routine template extension (2026-09-29)
 

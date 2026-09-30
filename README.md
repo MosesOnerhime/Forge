@@ -16,6 +16,8 @@ On this Windows machine, npm registry access may need `$env:NODE_OPTIONS='--use-
 
 Run `npm run typecheck`, `npm run lint`, `npm test`, and `npm run build`. The app can build without Supabase variables, but account flows need a configured database. On this Windows machine, run `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test_local_db.ps1` to create a disposable PostgreSQL 16 cluster, apply all migrations in filename order, run the checks, and remove the cluster. The underlying SQL files are `scripts/local_db_bootstrap.sql`, `supabase/migrations/*.sql`, and `scripts/local_db_checks.sql`.
 
+GitHub Actions runs the same four app checks on pull requests and pushes to `main` using Node.js 24. The workflow builds without Supabase credentials; it does not run the local PostgreSQL harness or replace the signed-in release test. See `.github/workflows/verify.yml`.
+
 The development-only `/design-preview` route shows representative dashboard and set-entry layouts for responsive QA. It returns 404 in a production build.
 The preview uses labeled sample data. Run `node scripts/capture_preview.mjs` while the development server is running to refresh the 1440px desktop and 390px mobile captures under `.impeccable/review/`. The current reviewed captures are saved in `docs/screenshots/`; they do not prove the authenticated routes work.
 

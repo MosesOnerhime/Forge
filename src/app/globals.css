@@ -112,7 +112,7 @@ p { line-height:1.5; }
 .reference-remove { position:absolute; top:6px; right:6px; display:grid; place-items:center; width:44px; height:44px; border:0; border-radius:10px; background:color-mix(in srgb,var(--background) 90%,transparent); color:#ff998a; }
 .reference-remove:hover { background:var(--elevated); }
 .reference-upload { max-width:460px; padding-top:8px; }
-.reference-dialog { width:min(94vw,920px); max-height:92dvh; padding:12px; border:1px solid var(--line); border-radius:16px; background:var(--surface); color:var(--text); }
+.reference-dialog { position:fixed; inset:0; width:min(94vw,920px); max-height:92dvh; margin:auto; padding:12px; border:1px solid var(--line); border-radius:16px; background:var(--surface); color:var(--text); }
 .reference-dialog::backdrop { background:color-mix(in srgb,var(--background) 90%,transparent); }
 .reference-dialog-head { display:flex; align-items:center; justify-content:space-between; gap:12px; min-width:0; margin-bottom:10px; }
 .reference-dialog-head strong { overflow-wrap:anywhere; }

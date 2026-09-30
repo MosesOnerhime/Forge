@@ -103,3 +103,5 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - 2026-09-30: Published nutrition/Today correction as `3c7d087`. GitHub reports a successful Vercel check; production preview routes still return 404. Supabase browser-control failed before SQL Editor access, so migration 005 is not yet verified remotely. The worktree was clean after the push. Resume by applying migration 005, querying the function body or testing a new account, and recording the result.
 
 - 2026-09-30: Hardened Settings profile and nutrition-target saves against rejected requests and surfaced initial/read-back errors. Added two rendered Settings tests for an empty target and a failed save followed by retry. Typecheck, lint, all 32 tests, and build passed. The browser-control service still cannot load its request-header policy, so remote migration 005 and live Settings persistence remain unverified.
+
+- 2026-09-30: Pushed the Settings correction as `01f959f`; GitHub reports a successful Vercel status for that commit. The configured Supabase project's migration 005 and live new-account test remain pending because browser-control cannot connect.

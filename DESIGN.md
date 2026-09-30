@@ -238,3 +238,11 @@ The development-only `/design-preview/templates` route renders this chooser with
 | A missing nutrition target displayed Runo's 2,900 kcal and macro goals. | The cards show logged amounts and a link to set targets. | A different account must not mistake Runo's figures for its own goals. |
 
 The refreshed `docs/screenshots/mobile.png` and `desktop.png` show the layout. The first mobile viewport check used Edge at 390x844; it proves layout geometry, not physical touch behavior.
+
+### Journal and Goals error-state review (2026-09-30)
+
+| Before | After | Why |
+| --- | --- | --- |
+| A rejected Journal delete or Goals toggle/delete request could escape without an alert. | Each action reports its failure beside the page content and releases its busy state for retry. | A failed write must stay visible and recoverable. |
+| Action buttons remained usable while a write was in flight. | Edit, delete, toggle, and cancel controls are disabled while the request runs. | This prevents duplicate actions and conflicting edits on slow connections. |
+| A successful write followed by a failed list refresh looked like an ordinary failed write. | The error says the write succeeded but the list could not refresh. | The user can check the saved record before retrying, avoiding an accidental duplicate. |

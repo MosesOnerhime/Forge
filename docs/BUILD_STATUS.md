@@ -83,3 +83,7 @@ The source did not include exact sets, rep ranges, and rest prescriptions. Seed 
 - 2026-09-30: After the lockfile repair, local typecheck, lint, all 32 tests, and production build passed. The remote Verify workflow remains the deciding evidence for Linux CI.
 
 - 2026-09-30: GitHub Actions Verify run `36655471922` passed all steps on commit `5d69003`, and the Vercel commit status is success. The separate Supabase Preview check still fails at initial `profiles` creation for the same production project. Documented read-only ledger/function checks and safe recovery order in `docs/SUPABASE_MIGRATION_RECOVERY.md`. Browser-control still fails before dashboard access; no remote migration or history repair was made.
+
+- 2026-09-30: Found uncaught network rejections in Journal deletion and Goals toggle/deletion. Those actions now show contextual errors, disable competing controls while busy, and support retry. Initial reads report failure; save operations distinguish write failure from a successful write whose list refresh failed. Rendered tests cover failed Journal delete and Goals toggle followed by successful retries. Live account persistence and slow-network behavior remain unverified.
+
+- 2026-09-30: After Journal/Goals hardening, typecheck, lint, all 34 tests, and production build passed locally. These tests use controlled requests; live Supabase persistence still needs a signed-in round trip.

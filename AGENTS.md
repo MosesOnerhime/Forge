@@ -117,3 +117,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - 2026-09-30: Local typecheck, lint, 32 tests, and build passed after the lockfile repair. The Linux GitHub workflow still needs its own passing run.
 
 - 2026-09-30: GitHub Actions Verify run `36655471922` passed on `5d69003`, as did Vercel's commit status. Supabase Preview still fails with `profiles` already existing in the production project's first migration. Added `docs/SUPABASE_MIGRATION_RECOVERY.md` with read-only checks and a cautious ledger-repair sequence. Migration 005 is not remotely verified, and browser-control remains unavailable.
+
+- 2026-09-30: Hardened Journal and Goals read/write error paths, with busy-state release and action-specific recovery messages. Rendered tests cover rejected Journal deletion and Goals toggle followed by retry. `DESIGN.md` records the UI error-state review. Live signed-in verification remains.
+
+- 2026-09-30: Typecheck, lint, all 34 tests, and production build passed after the Journal/Goals change. Live browser/account verification remains blocked by the browser-control connection.

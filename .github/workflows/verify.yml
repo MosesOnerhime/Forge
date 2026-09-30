@@ -17,7 +17,15 @@ jobs:
         with:
           node-version: '24'
           cache: npm
-      - run: npm ci
+      - name: Install dependencies
+        run: |
+          if npm ci > npm-install.log 2>&1; then
+            cat npm-install.log
+          else
+            grep -E '^(npm error|npm ERR!)' npm-install.log | tail -n 10 | sed 's/^/::error::/' || true
+            tail -n 5 npm-install.log | sed 's/^/::error::/'
+            exit 1
+          fi
       - run: npm run typecheck
       - run: npm run lint
       - run: npm test

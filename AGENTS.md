@@ -107,3 +107,5 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - 2026-09-30: Pushed the Settings correction as `01f959f`; GitHub reports a successful Vercel status for that commit. The configured Supabase project's migration 005 and live new-account test remain pending because browser-control cannot connect.
 
 - 2026-09-30: Added a GitHub Actions app gate for PRs and `main` pushes: install, typecheck, lint, test, and build on Node.js 24. Check the first remote run before calling CI verified. This does not cover PostgreSQL RLS or signed-in browser journeys.
+
+- 2026-09-30: The first Verify run failed at `npm ci` before any code checks. Added install-error annotations for the next run; local offline dry-run of `npm ci` passed. GitHub's separate Supabase Preview check failed with `relation "profiles" already exists` in initial migration, indicating remote migration history needs inspection before relying on automatic database deployment. The browser-control connection is still unavailable, and no remote repair was attempted.

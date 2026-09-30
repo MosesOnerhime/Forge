@@ -196,7 +196,7 @@ On mobile, Today, Workout, Nutrition, Progress, and More occupy a fixed, translu
 
 ### Rest Timer
 
-The timer floats above the mobile bar and moves near the desktop lower edge. It uses a warm dark panel, copper outline, distinct shadow, and tabular time readout.
+The timer floats above the mobile bar and moves near the desktop lower edge. It uses a warm dark panel, copper outline, distinct shadow, and tabular time readout. The timer lives in the app shell so it remains visible across Forge pages; its saved wall-clock deadline keeps the remaining time accurate after tab changes and reloads.
 
 ### Pending workout sets
 
@@ -204,7 +204,7 @@ An orange status pill marks a set saved on the device but not yet uploaded. A no
 
 ### Workout reference video
 
-The selected training day has an optional reference-video card in Edit routine and the workout session. It accepts MP4 or WebM up to 50 MiB, shows upload progress, and allows replacement or removal. A saved video has a tall preview tile in both places; selecting it opens a player in a dialog. Preview and playback use time-limited private links. The authenticated layout still needs mobile and desktop browser QA.
+The selected training day has an optional reference-video card in Edit routine and the workout session. It accepts MP4 or WebM up to 50 MiB, shows upload progress, and allows replacement or removal. A saved video has a tall tile with inline controls in both places; Expand opens the centered player. Preview and playback use time-limited private links. Inline playback and the larger viewer need authenticated browser QA after deployment.
 
 ## Do's and Don'ts
 
@@ -222,7 +222,7 @@ The selected training day has an optional reference-video card in Edit routine a
 
 ### Exercise reference images and videos
 
-Saved JPG/PNG/WebP images and MP4/WebM videos appear directly beneath each exercise as tall, horizontally scrollable preview tiles. The rail appears in the weekly Workouts list, routine editor, and workout session. Selecting a tile opens a native dialog with an enlarged image or video player. The editor and session offer upload and removal controls, while the weekly list is view-only. Media uses signed private links; filenames wrap, actions remain reachable at mobile widths, and progress and errors stay in context. The add form opens on demand so references remain visible without pushing set logging farther down the page.
+Saved JPG/PNG/WebP images and MP4/WebM videos appear directly beneath each exercise as tall, horizontally scrollable preview tiles. The rail appears in the weekly Workouts list, routine editor, and workout session. Videos play with native controls in their tiles and have a separate Expand action for the centered viewer; selecting an image enlarges it. The editor and session offer upload and removal controls, while the weekly list is view-only. Media uses signed private links; filenames wrap, actions remain reachable at mobile widths, and progress and errors stay in context. The add form opens on demand so references remain visible without pushing set logging farther down the page.
 
 | Before | After | Why |
 | --- | --- | --- |
@@ -230,6 +230,8 @@ Saved JPG/PNG/WebP images and MP4/WebM videos appear directly beneath each exerc
 | Session reference controls were read-only | Upload and removal available in the session | Lets users attach a reference at the moment they need it. |
 | Blank set inputs | Latest completed set's weight and reps suggested | Cuts repetitive typing while leaving the values editable. |
 | Dips displayed as a generic weight | `0 kg` labeled body weight; positive values labeled weighted dips | Makes added load unambiguous. |
+| Video tile opened only the large player | Native inline controls plus a separate Expand action | Lets users watch while scrolling and choose when they need a larger view. |
+| Rest timer vanished on app navigation | App-shell timer with a saved deadline | Keeps the countdown present and accurate across pages and tab changes. |
 
 ### Routine templates
 

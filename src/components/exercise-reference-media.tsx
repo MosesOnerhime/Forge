@@ -1,8 +1,9 @@
 'use client'
 
 import { useEffect, useId, useRef, useState, type FormEvent } from 'react'
-import { ImageSquare, Play, Trash, UploadSimple, X } from '@phosphor-icons/react'
+import { ImageSquare, Trash, UploadSimple, X } from '@phosphor-icons/react'
 import { supabase } from '@/lib/supabase'
+import { ReferenceVideoTile } from '@/components/reference-video-tile'
 import { errorMessage, type ExerciseReferenceMedia as Media } from '@/lib/data'
 import { EXERCISE_MEDIA_BUCKET, exerciseMediaError, exerciseMediaPath, uploadExerciseMedia } from '@/lib/exercise-media'
 
@@ -146,18 +147,19 @@ export function ExerciseReferenceMedia({ exerciseId, exerciseName, userId, manag
       {notice && <p className="muted small" role="status">{notice}</p>}
       {loading ? <p className="muted small">Loading references…</p> : media.length ? <div className="reference-rail" aria-label={`${exerciseName} reference gallery`}>{media.map(item => {
         const isImage = item.mime_type.startsWith('image/')
+        if (!isImage) return <ReferenceVideoTile key={item.id} name={item.original_name} sizeBytes={item.file_size_bytes} url={urls[item.id]}
+          expandLabel={`Expand video reference ${item.original_name}`} onExpand={() => void view(item)}
+          onRemove={manage ? () => void remove(item) : undefined} disabled={busy || openingId === item.id} />
         return <article className="reference-card" key={item.id}>
           <button type="button" className="reference-open" disabled={busy || openingId === item.id} onClick={() => void view(item)} aria-label={`Open ${isImage ? 'image' : 'video'} reference ${item.original_name}`}>
             <span className="reference-thumb">
-              {urls[item.id] ? isImage
+              {urls[item.id]
                 // eslint-disable-next-line @next/next/no-img-element
                 ? <img src={urls[item.id]} alt="" loading="lazy" />
-                : <video src={`${urls[item.id]}#t=0.1`} preload="metadata" muted playsInline aria-hidden="true" />
-                : <span className="reference-fallback">{isImage ? <ImageSquare size={32} /> : <Play size={32} />}</span>}
-              {!isImage && <span className="reference-play"><Play size={18} weight="fill" /></span>}
+                : <span className="reference-fallback"><ImageSquare size={32} /></span>}
             </span>
             <span className="reference-title">{item.original_name}</span>
-            <span className="reference-kind">{isImage ? 'Image' : 'Video'} · {(item.file_size_bytes / (1024 * 1024)).toFixed(1)} MB</span>
+            <span className="reference-kind">Image · {(item.file_size_bytes / (1024 * 1024)).toFixed(1)} MB</span>
           </button>
           {manage && <button type="button" className="reference-remove" disabled={busy} onClick={() => void remove(item)} aria-label={`Remove ${item.original_name}`}><Trash size={17} /></button>}
         </article>

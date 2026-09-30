@@ -291,6 +291,10 @@ Acceptance: an owner can upload a supported file, see its name, open a signed im
 
 Exercise images and videos appear as visible, horizontally scrollable preview cards in the weekly plan, routine editor, and workout session. Selecting a card opens a larger private image or playable video. An owner can add and remove exercise references during a workout session as well as in Edit routine. The scheduled workout-day video has a visible preview and can also be uploaded from the session page. Private preview links are short lived; opening a card requests a fresh signed link.
 
+## Inline video and persistent rest timer (2026-09-30)
+
+Reference videos, including the scheduled-day video, must play inside their visible tiles without opening a dialog. A separate Expand action opens the large player. The rest timer remains visible while navigating between Forge pages and resumes the correct wall-clock countdown after switching browser tabs or reloading. Keep pause, resume, reset, dismiss, and optional completion notifications available.
+
 When logging a new set, prefill weight and reps from the latest completed set for that exercise in the current workout. If none exists, use the first set from the previous workout when available. The user can edit both values before saving. For Dips and Upright Dips, `0 kg` (or `0 lb` in imperial display) represents body weight; a positive number represents added load and is clearly labelled weighted dips in the entry form and logged history.
 
 ## Routine templates addendum (2026-09-29)

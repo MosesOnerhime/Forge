@@ -307,6 +307,12 @@ The existing owner-scoped media schema serves previews in the weekly plan, routi
 
 The next set's controlled form values derive from the latest completed set in the current session; the first set falls back to the previous session RPC. Editing an existing set uses that set's values. The existing `workout_sets.weight_kg >= 0` constraint already stores body-weight dips as zero and positive weighted-dip additions; labels interpret that number without altering stored history.
 
+## Inline reference playback and persistent rest (2026-09-30)
+
+Video cards render native `<video controls playsInline>` elements using short-lived signed Storage URLs. Expand is a separate button that pauses the inline player and obtains a fresh signed URL for the dialog. Images keep their click-to-enlarge action. The same video tile is used for exercise and workout-day references; no database or Storage changes are required.
+
+The rest timer provider lives in the authenticated app shell rather than the session page. It stores a per-user browser-local record with duration, wall-clock deadline, paused remaining seconds, notification choice, and notification state. Every render derives remaining seconds from `Date.now()`, so background throttling cannot extend rest. Storage events synchronize tabs, while focus and visibility changes immediately refresh the display. Session set logging starts or replaces the timer; finishing or cancelling dismisses it. No server-side timer state or migration is added.
+
 ## Routine templates (2026-09-29)
 
 Migration `202609290004_routine_templates.sql` adds RLS-protected `routine_templates` with nullable owner for read-only built-ins, JSONB seven-day snapshots, and a source-template reference on active programs. `forge_save_routine_template` snapshots the caller's active week. `forge_apply_routine_template` checks authentication and ownership, serializes a switch per profile, rejects active sessions, deactivates the previous program, and creates a complete new program inside one transaction. The old program and days remain for historical foreign keys. Onboarding asks the apply RPC to reuse an already selected active template during retry. Built-ins contain no private media or personal body metrics.

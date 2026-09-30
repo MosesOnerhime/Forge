@@ -80,10 +80,13 @@ it('uploads an image from the exercise and shows its new card', async () => {
 })
 
 it('shows a saved video in the workout gallery and opens playback', async () => {
+  const pause = vi.spyOn(HTMLMediaElement.prototype, 'pause').mockImplementation(() => {})
   saved.push({ id: 'video-a', exercise_id: 'exercise-a', storage_path: 'user-a/exercise-a/clip.mp4', original_name: 'clip.mp4', mime_type: 'video/mp4', file_size_bytes: 100, created_at: '2026-09-29T12:00:00Z' })
   const page = await render()
   expect(page.querySelector('.reference-rail video')?.getAttribute('src')).toContain('clip.mp4')
+  expect(page.querySelector('.reference-rail video')?.hasAttribute('controls')).toBe(true)
   expect(page.querySelector('input[type="file"]')).toBeNull()
-  await act(async () => { page.querySelector<HTMLButtonElement>('[aria-label="Open video reference clip.mp4"]')!.click() })
+  await act(async () => { page.querySelector<HTMLButtonElement>('[aria-label="Expand video reference clip.mp4"]')!.click() })
+  expect(pause).toHaveBeenCalled()
   expect(page.querySelector('dialog[open] video')?.getAttribute('src')).toBe('https://example.test/user-a/exercise-a/clip.mp4')
 })

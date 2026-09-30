@@ -55,3 +55,5 @@ The migrations were executed in filename order against a disposable PostgreSQL 1
 - Permit reference upload and removal in sessions because the media belongs to the exercise or scheduled day, not to an immutable workout log. Existing owner-scoped RLS and Storage policies apply.
 - Treat a completed current-session set as the next set's suggestion; use the first set from the previous workout only when the current session has none. These are editable defaults, not automatic progression advice.
 - Treat zero added load for the named Dips and Upright Dips exercises as body weight. A positive load means external weight added and is labelled weighted dips. No database migration is needed.
+- Let video tiles play inline with native controls; use a separate Expand button for the full viewer. Pause the inline player before expansion to avoid two audio tracks. Keep signed private media URLs.
+- Move the rest timer to the authenticated app shell and persist its deadline under an owner-specific browser key. Preserve it across app navigation, background tabs, and reloads without adding a server table. Finish/cancel and Dismiss clear it.

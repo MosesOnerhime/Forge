@@ -104,9 +104,8 @@ p { line-height:1.5; }
 .reference-open:disabled { opacity:.65; }
 .reference-thumb { position:relative; display:grid; place-items:center; width:100%; aspect-ratio:3/4; overflow:hidden; border:1px solid var(--line); border-radius:12px; background:var(--elevated); }
 .reference-thumb img,.reference-thumb video { display:block; width:100%; height:100%; object-fit:cover; }
-.reference-thumb video { pointer-events:none; }
 .reference-fallback { color:var(--muted); }
-.reference-play { position:absolute; bottom:10px; left:10px; display:grid; place-items:center; width:36px; height:36px; border-radius:50%; background:color-mix(in srgb,var(--background) 90%,transparent); color:var(--text); }
+.reference-expand { width:100%; margin-top:8px; }
 .reference-title { display:-webkit-box; overflow:hidden; overflow-wrap:anywhere; -webkit-box-orient:vertical; -webkit-line-clamp:2; margin-top:8px; font-size:13px; font-weight:800; line-height:1.3; }
 .reference-kind { display:block; margin-top:4px; color:var(--muted); font-size:12px; }
 .reference-remove { position:absolute; top:6px; right:6px; display:grid; place-items:center; width:44px; height:44px; border:0; border-radius:10px; background:color-mix(in srgb,var(--background) 90%,transparent); color:#ff998a; }

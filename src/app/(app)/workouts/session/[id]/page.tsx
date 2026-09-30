@@ -7,7 +7,7 @@ import { Check, ArrowLeft, Plus, Trash, Timer, PencilSimple, Trophy } from '@pho
 import { useAuth } from '@/components/auth-provider'
 import { WorkoutReferenceVideo } from '@/components/workout-reference-video'
 import { ExerciseReferenceMedia } from '@/components/exercise-reference-media'
-import { RestTimer } from '@/components/rest-timer'
+import { useRestTimer } from '@/components/rest-timer-provider'
 import { supabase } from '@/lib/supabase'
 import { errorMessage, type Session, type SessionExercise, type WorkoutSet, type Exercise } from '@/lib/data'
 import { sessionDurationMinutes,sessionSummary,setVolume } from '@/lib/metrics'
@@ -24,13 +24,12 @@ export default function SessionPage() {
   const router = useRouter()
   const { user } = useAuth()
   const units = useUnits()
+  const { startRest, dismissRest } = useRestTimer()
   const [session, setSession] = useState<Session | null>(null)
   const [items, setItems] = useState<SessionExercise[]>([])
   const [exercises, setExercises] = useState<Exercise[]>([])
   const [previous, setPrevious] = useState<Previous>({})
   const [historicalBests, setHistoricalBests] = useState<Record<string,number>>({})
-  const [timer, setTimer] = useState<number | null>(null)
-  const [timerRun, setTimerRun] = useState(0)
   const [notifyRest, setNotifyRest] = useState(false)
   const [error, setError] = useState('')
   const [syncError, setSyncError] = useState('')
@@ -97,7 +96,7 @@ export default function SessionPage() {
       const queued = queuePendingSet({ userId: user.id, sessionId: id, sessionExerciseId: item.id, setNumber, weightKg: w, reps: r, rir: reserve, completedAt: new Date().toISOString() })
       if (!queued) throw new Error('This set could not be saved on this device. Check browser storage and try again.')
       setPending(readPendingSets(user.id))
-      if (item.rest_seconds > 0) { setTimer(item.rest_seconds); setTimerRun(value => value + 1) }
+      if (item.rest_seconds > 0) startRest(item.rest_seconds, notifyRest)
       if (navigator.onLine) {
         void syncPendingSets(user.id).then(result => {
           if (result.error) setSyncError(`Set saved on this device. Sync failed: ${result.error}`)
@@ -162,7 +161,7 @@ export default function SessionPage() {
     try {
       const { error } = await supabase().from('workout_sessions').update({ status, completed_at: new Date().toISOString() }).eq('id', id)
       if (error) throw error
-      setTimer(null)
+      dismissRest()
       await load()
       if (status === 'cancelled') router.push('/workouts')
     } catch (caught) { setError(`Workout could not be ${status === 'completed' ? 'finished' : 'cancelled'}: ${errorMessage(caught)}`) }
@@ -200,7 +199,6 @@ export default function SessionPage() {
         <Link href="/today" className="btn primary">Back to Today</Link>
       </div>}
     </>}
-    {timer !== null && <RestTimer key={timerRun} duration={timer} notify={notifyRest} onDismiss={() => setTimer(null)} />}
   </>
 }
 

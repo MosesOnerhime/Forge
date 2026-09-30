@@ -439,3 +439,7 @@ During onboarding, selecting Runo's plan can prefill his supplied nutrition figu
 ## Build from scratch guidance (2026-09-30)
 
 Selecting the blank routine template shows the steps to configure training days, add exercises, and save a reusable template. New accounts choosing it finish onboarding in Edit routine rather than Today. The empty editor repeats the guide, and each recovery day explains how to turn it into a training day. Existing accounts loading the blank template reach the same editor.
+
+## Inline references and timer continuity (2026-09-30)
+
+During a workout or while browsing the weekly plan, play a reference video directly inside its tile. Choose Expand only when a larger player is useful. After logging a set, the rest timer appears above the app navigation; moving to another Forge page keeps it on screen. Switching browser tabs or reloading preserves the deadline and recalculates the remaining time. Pause, resume, reset, and dismiss work from any app page.

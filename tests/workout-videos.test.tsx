@@ -88,6 +88,7 @@ beforeEach(() => {
   uploadStub.mockClear()
   HTMLDialogElement.prototype.showModal = function () { this.open = true }
   HTMLDialogElement.prototype.close = function () { this.open = false; this.dispatchEvent(new Event('close')) }
+  vi.spyOn(HTMLMediaElement.prototype, 'pause').mockImplementation(() => {})
 })
 
 afterEach(async () => {
@@ -117,8 +118,8 @@ describe('Workout reference videos', () => {
     expect(store.uploads[0]).toMatchObject({ user_id: 'user-a', workout_day_id: 'day-a', original_name: 'form-demo.mp4' })
     expect(store.uploads[0].storage_path).toMatch(/^user-a\/day-a\/.+\.mp4$/)
     expect(page.textContent).toContain('Reference video saved.')
-    expect(page.querySelector('.reference-rail video')).toBeTruthy()
-    const watch = page.querySelector<HTMLButtonElement>('[aria-label="Play workout reference form-demo.mp4"]')!
+    expect(page.querySelector('.reference-rail video')?.hasAttribute('controls')).toBe(true)
+    const watch = page.querySelector<HTMLButtonElement>('[aria-label="Expand workout reference form-demo.mp4"]')!
     await act(async () => { watch.click() })
     expect(page.querySelector('dialog[open] video')?.getAttribute('src')).toBe('https://example.test/private-video')
   })

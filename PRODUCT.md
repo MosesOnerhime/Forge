@@ -28,7 +28,9 @@ Source of truth: [docs/SOURCE_SPEC.md](docs/SOURCE_SPEC.md). Decisions and gaps:
 
 ## Exercise references (2026-09-29)
 
-A user can attach private reference images and videos to an individual exercise. The same references appear wherever that exercise is scheduled or logged; they do not move with a workout day. The weekly plan, routine editor, and session show a horizontal row of visible previews. Selecting a preview opens a larger image or video. The routine editor and session can add or remove references. The scheduled-day overview video remains separate and has its own visible preview.
+A user can attach private reference images and videos to an individual exercise. The same references appear wherever that exercise is scheduled or logged; they do not move with a workout day. The weekly plan, routine editor, and session show a horizontal row of visible previews. Videos play within their tiles, with a separate Expand action for a larger player; images enlarge on selection. The routine editor and session can add or remove references. The scheduled-day overview video remains separate and also plays inline.
+
+The rest countdown remains visible across Forge navigation. It uses a saved wall-clock deadline so switching browser tabs or reloading does not restart or discard it.
 
 During set logging, weight and reps start with the latest completed set for that exercise in the current workout, or the first set from the previous workout. For Dips and Upright Dips, zero added weight means body weight; a positive value is displayed as weighted dips.
 

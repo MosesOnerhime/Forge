@@ -2168,3 +2168,7 @@ The user asked for the current workout as a selectable ?Runo's Workout Routine? 
 ## User addendum: visible references and set defaults (2026-09-30)
 
 The user supplied a screenshot of tall, visible media tiles and asked that exercise reference videos/images appear while scrolling, with a click to enlarge or play. The user also asked to upload references on workout session pages, prefill weight and reps from the previous set for the exercise, and record `0 kg` as body-weight dips while a positive entry means weighted dips. This addendum preserves the original source specification above.
+
+## User addendum: inline playback and timer continuity (2026-09-30)
+
+The user clarified that reference videos must play inside their compact tiles, with expansion optional. The user also asked that the rest countdown not disappear when moving to another tab. The implementation interpretation covers Forge navigation, browser-tab backgrounding, and reload restoration; the timer remains account-scoped in browser storage.

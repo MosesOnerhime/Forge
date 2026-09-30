@@ -8,9 +8,10 @@ import { ServiceWorker } from './service-worker'
 import { supabase } from '@/lib/supabase'
 import { errorMessage } from '@/lib/data'
 import { Nav } from './nav'
+import { RestTimerProvider } from './rest-timer-provider'
 
 export function AppShell({children}:{children:React.ReactNode}) {
-  return <AuthProvider required><OnboardingGate><ServiceWorker/><div className="shell"><aside className="sidebar"><Link href="/today" className="brand">FORGE<span>.</span></Link><Nav/><div className="muted small" style={{marginTop:'auto',padding:12}}>Show up. Log it. Progress.</div></aside><main className="main">{children}</main><Nav mobile/></div></OnboardingGate></AuthProvider>
+  return <AuthProvider required><OnboardingGate><RestTimerProvider><ServiceWorker/><div className="shell"><aside className="sidebar"><Link href="/today" className="brand">FORGE<span>.</span></Link><Nav/><div className="muted small" style={{marginTop:'auto',padding:12}}>Show up. Log it. Progress.</div></aside><main className="main">{children}</main><Nav mobile/></div></RestTimerProvider></OnboardingGate></AuthProvider>
 }
 
 function OnboardingGate({children}:{children:React.ReactNode}) {

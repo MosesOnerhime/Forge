@@ -56,6 +56,7 @@ class Query {
 vi.mock('next/navigation', () => ({ useParams: () => ({ id: 'session-a' }), useRouter: () => ({ push: vi.fn() }) }))
 vi.mock('next/link', () => ({ default: ({ href, children, ...props }: { href: string; children: React.ReactNode }) => <a href={href} {...props}>{children}</a> }))
 vi.mock('@/components/auth-provider', () => ({ useAuth: () => ({ user: authUser }) }))
+vi.mock('@/components/rest-timer-provider', () => ({ useRestTimer: () => ({ startRest: vi.fn(), dismissRest: vi.fn() }) }))
 vi.mock('@/hooks/use-units', () => ({ useUnits: () => 'metric' }))
 vi.mock('@/lib/supabase', () => ({ supabase: () => ({ from: (table: string) => new Query(table), rpc: async () => ({ data: [], error: null }) }) }))
 vi.mock('@/lib/offline-workout', () => ({ cacheOfflineWorkout: vi.fn() }))

@@ -312,6 +312,8 @@ Added an exercise-owned media table and private Storage bucket, file validation,
 
 Replace closed reference disclosures with visible preview rows in Workouts, Edit routine, and sessions. Open media in a larger viewer, sign preview links on load and a fresh link on selection, and permit exercise and workout-day reference uploads from a session. Prefill a new set from the latest completed current-session set, falling back to last workout's first set; allow edits. Record zero added load for Dips/Upright Dips as body weight and identify positive loads as weighted dips. Verify image and video cards, modal opening, session upload controls, set defaults, body-weight and weighted labels, mobile/desktop layout, then production signed-in behavior.
 
+Follow-up: put native inline controls on each video tile and give it a separate Expand button. Move rest state to an app-shell provider with per-user local persistence and a wall-clock deadline. Verify inline play and expand independently at phone and desktop widths; verify the timer across app navigation, browser tab backgrounding, reload, pause/resume, and completion. Local tests cover route persistence and reload timing; authenticated browser checks remain to run after deployment.
+
 ## Routine template extension (2026-09-29)
 
 Apply migration 004 before deploying the picker. Verify three built-ins, owner-only saved templates, onboarding choice, blank-week editing, save/reload, active-session rejection, and preserved session history in the local database harness and signed-in browser. Complete mobile and desktop visual checks. The missing original Runo prescriptions and the mother's equipment/health restrictions remain open inputs for plan refinement.

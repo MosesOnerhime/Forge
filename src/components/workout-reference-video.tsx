@@ -1,8 +1,9 @@
 'use client'
 
 import { useEffect, useRef, useState, type FormEvent } from 'react'
-import { Play, Trash, UploadSimple, X } from '@phosphor-icons/react'
+import { UploadSimple, X } from '@phosphor-icons/react'
 import { supabase } from '@/lib/supabase'
+import { ReferenceVideoTile } from '@/components/reference-video-tile'
 import { errorMessage, type WorkoutReferenceVideo } from '@/lib/data'
 import { MAX_WORKOUT_VIDEO_BYTES, WORKOUT_VIDEO_BUCKET, uploadWorkoutVideo, workoutVideoError, workoutVideoPath } from '@/lib/workout-videos'
 
@@ -171,13 +172,9 @@ export function WorkoutReferenceVideo({ dayId, dayName, userId, manage = false }
     <div className="reference-head"><h2>Reference video</h2>{manage && <button className="btn ghost small" type="button" aria-expanded={uploadOpen} onClick={() => setUploadOpen(value => !value)}><UploadSimple size={16} /> {uploadOpen ? 'Close upload' : video ? 'Replace video' : 'Add video'}</button>}</div>
     {error && <div className="notice" role="alert" style={{ marginTop: 12 }}>{error}{cleanupPath && <button className="btn small" type="button" disabled={busy} onClick={retryCleanup} style={{ marginLeft: 10 }}>Retry cleanup</button>}</div>}
     {notice && <p className="muted small" role="status">{notice}</p>}
-    {loading ? <p className="muted small">Checking for a reference video…</p> : video ? <div className="reference-rail" style={{ marginTop: 12 }}><article className="reference-card">
-      <button className="reference-open" type="button" disabled={busy} onClick={play} aria-label={`Play workout reference ${video.original_name}`}>
-        <span className="reference-thumb">{previewUrl ? <video src={`${previewUrl}#t=0.1`} preload="metadata" muted playsInline aria-hidden="true" /> : <span className="reference-fallback"><Play size={32} /></span>}<span className="reference-play"><Play size={18} weight="fill" /></span></span>
-        <span className="reference-title">{video.original_name}</span><span className="reference-kind">Video · {(video.file_size_bytes / (1024 * 1024)).toFixed(1)} MB</span>
-      </button>
-      {manage && <button className="reference-remove" type="button" disabled={busy} onClick={remove} aria-label={`Remove workout reference ${video.original_name}`}><Trash size={17} /></button>}
-    </article></div> : <p className="muted small">No video saved for this workout yet.</p>}
+    {loading ? <p className="muted small">Checking for a reference video…</p> : video ? <div className="reference-rail" style={{ marginTop: 12 }}><ReferenceVideoTile name={video.original_name} sizeBytes={video.file_size_bytes} url={previewUrl || undefined}
+      expandLabel={`Expand workout reference ${video.original_name}`} onExpand={() => void play()}
+      onRemove={manage ? () => void remove() : undefined} disabled={busy} /></div> : <p className="muted small">No video saved for this workout yet.</p>}
     {manage && uploadOpen && <form onSubmit={upload} className="stack" style={{ marginTop: 18 }}>
       <div><label htmlFor={`workout-video-${dayId}`}>{video ? 'Replace video' : 'Upload video'}</label><input ref={fileInput} id={`workout-video-${dayId}`} type="file" accept="video/mp4,video/webm" disabled={busy || loading} onChange={event => setFile(event.target.files?.[0] ?? null)} /><p className="muted small" style={{ margin: '8px 0 0' }}>MP4 or WebM, up to {MAX_WORKOUT_VIDEO_BYTES / (1024 * 1024)} MB. Private to your account.</p></div>
       {busy && progress > 0 && <div role="status" className="muted small">Uploading {progress}%</div>}

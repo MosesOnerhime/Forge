@@ -26,6 +26,7 @@ The preview uses labeled sample data. Run `node scripts/capture_preview.mjs` whi
 - The original supplied specification is preserved in [docs/SOURCE_SPEC.md](docs/SOURCE_SPEC.md). Six working documents split from it live in `docs/`.
 - [docs/DECISIONS.md](docs/DECISIONS.md) records assumptions, especially provisional exercise sets, reps, and rest durations.
 - [docs/BUILD_STATUS.md](docs/BUILD_STATUS.md) tracks implementation and verification.
+- [docs/SUPABASE_MIGRATION_RECOVERY.md](docs/SUPABASE_MIGRATION_RECOVERY.md) records the current Supabase migration-history conflict and safe read-only checks.
 - [DESIGN.md](DESIGN.md) and `.impeccable/design.json` record the implemented visual system and current review limits.
 - [AGENTS.md](AGENTS.md) records agent workflow and the Claude/Codex design setup.
 

@@ -115,3 +115,5 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - 2026-09-30: The third Verify run identified missing `@emnapi/core@1.11.3` and `@emnapi/runtime@1.11.3` lock entries. Added exact dev dependencies and regenerated the lockfile; a local Linux-platform `npm ci` dry run passed. Verify the next GitHub run before treating CI as green.
 
 - 2026-09-30: Local typecheck, lint, 32 tests, and build passed after the lockfile repair. The Linux GitHub workflow still needs its own passing run.
+
+- 2026-09-30: GitHub Actions Verify run `36655471922` passed on `5d69003`, as did Vercel's commit status. Supabase Preview still fails with `profiles` already existing in the production project's first migration. Added `docs/SUPABASE_MIGRATION_RECOVERY.md` with read-only checks and a cautious ledger-repair sequence. Migration 005 is not remotely verified, and browser-control remains unavailable.

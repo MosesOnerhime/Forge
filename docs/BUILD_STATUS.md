@@ -81,3 +81,5 @@ The source did not include exact sets, rep ranges, and rest prescriptions. Seed 
 - 2026-09-30: The third Verify run for `c7832d5` exposed `npm ci` error EUSAGE: `@emnapi/core@1.11.3` and `@emnapi/runtime@1.11.3` were missing from the lockfile. Added exact dev dependencies and regenerated `package-lock.json`; a local Linux OS/CPU `npm ci` dry run now passes. The next remote run must confirm the full gate. This dependency fix does not address the separate Supabase Preview migration conflict.
 
 - 2026-09-30: After the lockfile repair, local typecheck, lint, all 32 tests, and production build passed. The remote Verify workflow remains the deciding evidence for Linux CI.
+
+- 2026-09-30: GitHub Actions Verify run `36655471922` passed all steps on commit `5d69003`, and the Vercel commit status is success. The separate Supabase Preview check still fails at initial `profiles` creation for the same production project. Documented read-only ledger/function checks and safe recovery order in `docs/SUPABASE_MIGRATION_RECOVERY.md`. Browser-control still fails before dashboard access; no remote migration or history repair was made.

@@ -1,7 +1,7 @@
 'use client'
 
 import type { RoutineTemplate } from '@/lib/routine-templates'
-import { routineWeekdays, templateSummary } from '@/lib/routine-templates'
+import { isScratchTemplate, routineWeekdays, templateSummary } from '@/lib/routine-templates'
 
 type Props = {
   templates: RoutineTemplate[]
@@ -23,6 +23,14 @@ export function RoutineTemplateChoice({ templates, selected, onSelect, disabled 
           <span id={`template-summary-${template.id}`} className="muted small">{templateSummary(template.days)}</span>
         </span>
       </span>
+      {selected === template.id && isScratchTemplate(template) && <div className="notice" role="note" style={{ marginTop: 12, marginLeft: 32 }}>
+        <strong>How to build your week</strong>
+        <ol style={{ margin: '8px 0 0', paddingLeft: 20 }}>
+          <li>Finish setup, then open Edit routine.</li>
+          <li>Choose a day, open its details, turn off Recovery day, name it, and set its duration.</li>
+          <li>Add exercises with sets, reps, and rest. Repeat for your other training days, then save the week as a template.</li>
+        </ol>
+      </div>}
       {selected === template.id && <div className="stack" style={{ gap: 4, marginTop: 12, paddingLeft: 32 }}>
         {template.days.map(day => <div className="row small" key={day.day_of_week}>
           <span>{routineWeekdays[day.day_of_week]}</span>

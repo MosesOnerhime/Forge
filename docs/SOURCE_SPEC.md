@@ -2164,3 +2164,7 @@ The user subsequently clarified on 2026-09-29: upload `C:\Users\moses\Videos\cab
 ## User addendum: routine templates (2026-09-29)
 
 The user asked for the current workout as a selectable ?Runo's Workout Routine? for new users, the ability to create and save a personal routine as a reusable template, and a separate starter routine for the user's mother. Her stated context is approximately 98 kg and 5 ft 9 in, with a goal concerning her arms and stomach. Those personal measurements are not part of a shared template. The starter plan must be editable and must not promise fat loss in a particular body area.
+
+## User addendum: visible references and set defaults (2026-09-30)
+
+The user supplied a screenshot of tall, visible media tiles and asked that exercise reference videos/images appear while scrolling, with a click to enlarge or play. The user also asked to upload references on workout session pages, prefill weight and reps from the previous set for the exercise, and record `0 kg` as body-weight dips while a positive entry means weighted dips. This addendum preserves the original source specification above.

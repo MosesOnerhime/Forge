@@ -1,17 +1,26 @@
 'use client'
 
 import { useEffect, useRef, useState, type FormEvent } from 'react'
-import { Play, Trash, UploadSimple } from '@phosphor-icons/react'
+import { Play, Trash, UploadSimple, X } from '@phosphor-icons/react'
 import { supabase } from '@/lib/supabase'
 import { errorMessage, type WorkoutReferenceVideo } from '@/lib/data'
 import { MAX_WORKOUT_VIDEO_BYTES, WORKOUT_VIDEO_BUCKET, uploadWorkoutVideo, workoutVideoError, workoutVideoPath } from '@/lib/workout-videos'
 
 type Props = { dayId: string; dayName: string; userId: string; manage?: boolean }
 
+async function signedWorkoutUrl(video: WorkoutReferenceVideo) {
+  const { data, error } = await supabase().storage.from(WORKOUT_VIDEO_BUCKET).createSignedUrl(video.storage_path, 7200)
+  if (error) throw error
+  if (!data?.signedUrl) throw new Error('No playback link was returned.')
+  return data.signedUrl
+}
+
 export function WorkoutReferenceVideo({ dayId, dayName, userId, manage = false }: Props) {
   const [video, setVideo] = useState<WorkoutReferenceVideo | null>(null)
   const [file, setFile] = useState<File | null>(null)
+  const [uploadOpen, setUploadOpen] = useState(false)
   const [playbackUrl, setPlaybackUrl] = useState('')
+  const [previewUrl, setPreviewUrl] = useState('')
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
   const [progress, setProgress] = useState(0)
@@ -19,6 +28,7 @@ export function WorkoutReferenceVideo({ dayId, dayName, userId, manage = false }
   const [notice, setNotice] = useState('')
   const [cleanupPath, setCleanupPath] = useState('')
   const fileInput = useRef<HTMLInputElement>(null)
+  const dialogRef = useRef<HTMLDialogElement>(null)
 
   useEffect(() => {
     let live = true
@@ -29,7 +39,11 @@ export function WorkoutReferenceVideo({ dayId, dayName, userId, manage = false }
           .eq('workout_day_id', dayId).maybeSingle()
         if (!live) return
         if (queryError) setError(`Reference video could not be loaded: ${queryError.message}`)
-        else setVideo(data as WorkoutReferenceVideo | null)
+        else {
+          const saved = data as WorkoutReferenceVideo | null
+          setVideo(saved)
+          if (saved) void signedWorkoutUrl(saved).then(url => { if (live) setPreviewUrl(url) }).catch(() => {})
+        }
       } catch (caught) {
         if (live) setError(`Reference video could not be loaded: ${errorMessage(caught)}`)
       } finally {
@@ -39,14 +53,15 @@ export function WorkoutReferenceVideo({ dayId, dayName, userId, manage = false }
     return () => { live = false }
   }, [dayId])
 
+  useEffect(() => {
+    if (playbackUrl && dialogRef.current && !dialogRef.current.open) dialogRef.current.showModal()
+  }, [playbackUrl])
+
   async function play() {
     if (!video || busy) return
     setBusy(true); setError('')
     try {
-      const { data, error: signError } = await supabase().storage.from(WORKOUT_VIDEO_BUCKET).createSignedUrl(video.storage_path, 7200)
-      if (signError) throw signError
-      if (!data?.signedUrl) throw new Error('No playback link was returned.')
-      setPlaybackUrl(data.signedUrl)
+      setPlaybackUrl(await signedWorkoutUrl(video))
     } catch (caught) { setError(`Reference video could not be opened: ${errorMessage(caught)}`) }
     finally { setBusy(false) }
   }
@@ -77,7 +92,9 @@ export function WorkoutReferenceVideo({ dayId, dayName, userId, manage = false }
       saved = true
       setVideo(data as WorkoutReferenceVideo)
       setPlaybackUrl('')
+      void signedWorkoutUrl(data as WorkoutReferenceVideo).then(setPreviewUrl).catch(() => setPreviewUrl(''))
       setFile(null)
+      setUploadOpen(false)
       if (fileInput.current) fileInput.current.value = ''
       setNotice(previousPath ? 'Reference video replaced.' : 'Reference video saved.')
       if (previousPath && previousPath !== path) {
@@ -102,7 +119,9 @@ export function WorkoutReferenceVideo({ dayId, dayName, userId, manage = false }
           if (current?.storage_path === path) {
             setVideo(current as WorkoutReferenceVideo)
             setPlaybackUrl('')
+            void signedWorkoutUrl(current as WorkoutReferenceVideo).then(setPreviewUrl).catch(() => setPreviewUrl(''))
             setFile(null)
+            setUploadOpen(false)
             if (fileInput.current) fileInput.current.value = ''
             setNotice('Reference video saved.')
             if (previousPath && previousPath !== path) setCleanupPath(previousPath)
@@ -130,7 +149,7 @@ export function WorkoutReferenceVideo({ dayId, dayName, userId, manage = false }
       if (fileError) throw new Error(`Video file could not be removed: ${fileError.message}`)
       const { error: rowError } = await client.from('workout_reference_videos').delete().eq('id', video.id)
       if (rowError) throw new Error(`Video file was removed, but its record remains. Retry removal: ${rowError.message}`)
-      setVideo(null); setPlaybackUrl(''); setNotice('Reference video removed.')
+      setVideo(null); setPlaybackUrl(''); setPreviewUrl(''); setNotice('Reference video removed.')
     } catch (caught) { setError(errorMessage(caught)) }
     finally { setBusy(false) }
   }
@@ -149,24 +168,23 @@ export function WorkoutReferenceVideo({ dayId, dayName, userId, manage = false }
   if (!manage && !video && !error) return null
 
   return <section className="card" style={{ marginTop: 16 }} aria-label={`Reference video for ${dayName}`}>
-    <h2>Reference video</h2>
+    <div className="reference-head"><h2>Reference video</h2>{manage && <button className="btn ghost small" type="button" aria-expanded={uploadOpen} onClick={() => setUploadOpen(value => !value)}><UploadSimple size={16} /> {uploadOpen ? 'Close upload' : video ? 'Replace video' : 'Add video'}</button>}</div>
     {error && <div className="notice" role="alert" style={{ marginTop: 12 }}>{error}{cleanupPath && <button className="btn small" type="button" disabled={busy} onClick={retryCleanup} style={{ marginLeft: 10 }}>Retry cleanup</button>}</div>}
     {notice && <p className="muted small" role="status">{notice}</p>}
-    {loading ? <p className="muted small">Checking for a reference video…</p> : video ? <>
-      <div className="row wrap" style={{ justifyContent: 'flex-start', marginTop: 12 }}>
-        <strong style={{ overflowWrap: 'anywhere' }}>{video.original_name}</strong>
-        <span className="muted small">{(video.file_size_bytes / (1024 * 1024)).toFixed(1)} MB</span>
-      </div>
-      <div className="row wrap" style={{ justifyContent: 'flex-start', marginTop: 12 }}>
-        <button className="btn small" type="button" disabled={busy} onClick={play}><Play size={16} /> {playbackUrl ? 'Refresh video link' : 'Watch reference'}</button>
-        {manage && <button className="btn ghost small danger" type="button" disabled={busy} onClick={remove}><Trash size={16} /> Remove</button>}
-      </div>
-      {playbackUrl && <video controls playsInline preload="none" src={playbackUrl} aria-label={`Reference video for ${dayName}`} style={{ display: 'block', width: '100%', maxHeight: 420, marginTop: 16, borderRadius: 12, background: 'var(--background)' }} />}
-    </> : <p className="muted small">No video saved for this workout yet.</p>}
-    {manage && <form onSubmit={upload} className="stack" style={{ marginTop: 18 }}>
+    {loading ? <p className="muted small">Checking for a reference video…</p> : video ? <div className="reference-rail" style={{ marginTop: 12 }}><article className="reference-card">
+      <button className="reference-open" type="button" disabled={busy} onClick={play} aria-label={`Play workout reference ${video.original_name}`}>
+        <span className="reference-thumb">{previewUrl ? <video src={`${previewUrl}#t=0.1`} preload="metadata" muted playsInline aria-hidden="true" /> : <span className="reference-fallback"><Play size={32} /></span>}<span className="reference-play"><Play size={18} weight="fill" /></span></span>
+        <span className="reference-title">{video.original_name}</span><span className="reference-kind">Video · {(video.file_size_bytes / (1024 * 1024)).toFixed(1)} MB</span>
+      </button>
+      {manage && <button className="reference-remove" type="button" disabled={busy} onClick={remove} aria-label={`Remove workout reference ${video.original_name}`}><Trash size={17} /></button>}
+    </article></div> : <p className="muted small">No video saved for this workout yet.</p>}
+    {manage && uploadOpen && <form onSubmit={upload} className="stack" style={{ marginTop: 18 }}>
       <div><label htmlFor={`workout-video-${dayId}`}>{video ? 'Replace video' : 'Upload video'}</label><input ref={fileInput} id={`workout-video-${dayId}`} type="file" accept="video/mp4,video/webm" disabled={busy || loading} onChange={event => setFile(event.target.files?.[0] ?? null)} /><p className="muted small" style={{ margin: '8px 0 0' }}>MP4 or WebM, up to {MAX_WORKOUT_VIDEO_BYTES / (1024 * 1024)} MB. Private to your account.</p></div>
       {busy && progress > 0 && <div role="status" className="muted small">Uploading {progress}%</div>}
       <button className="btn primary" type="submit" disabled={busy || loading || !file} style={{ justifySelf: 'start' }}><UploadSimple size={17} /> {busy ? 'Saving video…' : video ? 'Replace reference' : 'Save reference'}</button>
     </form>}
+    <dialog ref={dialogRef} className="reference-dialog" onClose={() => setPlaybackUrl('')} onClick={event => { if (event.target === event.currentTarget) event.currentTarget.close() }} aria-label={`Reference video for ${dayName}`}>
+      {video && playbackUrl && <><div className="reference-dialog-head"><strong>{video.original_name}</strong><button type="button" className="btn ghost small" onClick={() => dialogRef.current?.close()} aria-label="Close reference"><X size={20} /></button></div><video controls autoPlay playsInline preload="metadata" src={playbackUrl} aria-label={`Reference video for ${dayName}`} /></>}
+    </dialog>
   </section>
 }

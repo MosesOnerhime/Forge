@@ -308,6 +308,10 @@ If entering workout or nutrition information becomes tedious, the feature should
 
 Added an exercise-owned media table and private Storage bucket, file validation, resumable video and direct image upload, lazy routine/session disclosures, signed viewing, removal, metadata export, and local RLS/Storage checks. Migration `202609290003_exercise_reference_media.sql` and the app are deployed. On 2026-09-30, the supplied Cable Lateral Raise MP4 was uploaded through Edit routine, played through a signed source, and remained after reload. Image upload, session viewer, and cross-account live checks remain.
 
+## Visible references and faster set logging (2026-09-30)
+
+Replace closed reference disclosures with visible preview rows in Workouts, Edit routine, and sessions. Open media in a larger viewer, sign preview links on load and a fresh link on selection, and permit exercise and workout-day reference uploads from a session. Prefill a new set from the latest completed current-session set, falling back to last workout's first set; allow edits. Record zero added load for Dips/Upright Dips as body weight and identify positive loads as weighted dips. Verify image and video cards, modal opening, session upload controls, set defaults, body-weight and weighted labels, mobile/desktop layout, then production signed-in behavior.
+
 ## Routine template extension (2026-09-29)
 
 Apply migration 004 before deploying the picker. Verify three built-ins, owner-only saved templates, onboarding choice, blank-week editing, save/reload, active-session rejection, and preserved session history in the local database harness and signed-in browser. Complete mobile and desktop visual checks. The missing original Runo prescriptions and the mother's equipment/health restrictions remain open inputs for plan refinement.

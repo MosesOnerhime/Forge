@@ -204,7 +204,7 @@ An orange status pill marks a set saved on the device but not yet uploaded. A no
 
 ### Workout reference video
 
-The selected training day has an optional reference-video card in Edit routine. It accepts MP4 or WebM up to 50 MiB, shows upload progress, and allows replacement or removal. A session shows the saved filename and a Watch action; the player loads only after that action so it does not compete with set logging or fetch media on every session open. Playback uses a time-limited private link. The authenticated layout still needs mobile and desktop browser QA.
+The selected training day has an optional reference-video card in Edit routine and the workout session. It accepts MP4 or WebM up to 50 MiB, shows upload progress, and allows replacement or removal. A saved video has a tall preview tile in both places; selecting it opens a player in a dialog. Preview and playback use time-limited private links. The authenticated layout still needs mobile and desktop browser QA.
 
 ## Do's and Don'ts
 
@@ -222,11 +222,20 @@ The selected training day has an optional reference-video card in Edit routine. 
 
 ### Exercise reference images and videos
 
-Each routine exercise has a compact **Reference images & videos** disclosure below its prescription. Opening it loads a list of saved media and the upload control; the closed state causes no media request. JPG/PNG/WebP images and MP4/WebM videos are displayed only after the user chooses View, using a signed private link. The session reuses the disclosure in read-only mode. Filenames wrap, actions remain reachable at mobile widths, progress and errors stay in context, and the form is secondary to set logging.
+Saved JPG/PNG/WebP images and MP4/WebM videos appear directly beneath each exercise as tall, horizontally scrollable preview tiles. The rail appears in the weekly Workouts list, routine editor, and workout session. Selecting a tile opens a native dialog with an enlarged image or video player. The editor and session offer upload and removal controls, while the weekly list is view-only. Media uses signed private links; filenames wrap, actions remain reachable at mobile widths, and progress and errors stay in context. The add form opens on demand so references remain visible without pushing set logging farther down the page.
+
+| Before | After | Why |
+| --- | --- | --- |
+| References hidden in a disclosure, then behind a View action | Visible tall preview tiles with click-to-enlarge/play | Lets users scan exercise technique while scrolling, as requested. |
+| Session reference controls were read-only | Upload and removal available in the session | Lets users attach a reference at the moment they need it. |
+| Blank set inputs | Latest completed set's weight and reps suggested | Cuts repetitive typing while leaving the values editable. |
+| Dips displayed as a generic weight | `0 kg` labeled body weight; positive values labeled weighted dips | Makes added load unambiguous. |
 
 ### Routine templates
 
 First use presents a single-choice list with each plan's purpose, training-day count, exercise count, and a seven-day preview for the selected choice. Template management stays behind Edit routine, where Save current routine and Load selected routine are explicit actions. Day details sit in a disclosure above the selected day's exercises so the main logging plan remains scannable. The starter plan's copy avoids a promise of targeted fat loss and does not use Runo's nutrition targets.
+
+Selecting the empty template reveals three concrete steps: change a recovery day into a named training day with a duration, add exercises and prescriptions, then save the week as a template. New users who select it land in Edit routine after onboarding, where the empty state repeats those steps and the day card explains the Recovery day switch. The guide disappears once a training day is configured.
 
 The development-only `/design-preview/templates` route renders this chooser with labeled sample data. Its 390px Runo and Mom states and 1440px desktop state were captured in `docs/screenshots/`; the checked mobile document width did not exceed the viewport.
 

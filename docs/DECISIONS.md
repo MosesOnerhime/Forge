@@ -48,3 +48,10 @@ The migrations were executed in filename order against a disposable PostgreSQL 1
 - Runo's template copies the existing five-day routine; its sets, reps, and rests remain provisional pending the original workout prescription.
 - The starter's three moderate full-body days and optional gradual walking are an implementation choice informed by the [WHO adult activity guidance](https://www.who.int/europe/news-room/fact-sheets/item/physical-activity) and [CDC adult guidance](https://www.cdc.gov/physical-activity-basics/guidelines/adults.html), which recommend aerobic activity plus muscle strengthening at least twice weekly. The template does not by itself guarantee the weekly aerobic target. Exercise choices and loads require adjustment for the person's ability, equipment, and any medical restrictions.
 - New accounts no longer receive Runo's nutrition target from the database trigger. The onboarding choice controls whether his supplied values prefill; other plans require account-specific entries. Migration 005 preserves existing target history because those rows may represent deliberate choices. A targetless account shows only logged nutrition and a Settings link.
+
+## Reference and set-entry decisions (2026-09-30)
+
+- Use a horizontal preview row under each exercise so references are visible while scrolling, with a full-size dialog on selection. Keep files private and sign a fresh viewer URL when selected; no new public thumbnail bucket.
+- Permit reference upload and removal in sessions because the media belongs to the exercise or scheduled day, not to an immutable workout log. Existing owner-scoped RLS and Storage policies apply.
+- Treat a completed current-session set as the next set's suggestion; use the first set from the previous workout only when the current session has none. These are editable defaults, not automatic progression advice.
+- Treat zero added load for the named Dips and Upright Dips exercises as body weight. A positive load means external weight added and is labelled weighted dips. No database migration is needed.

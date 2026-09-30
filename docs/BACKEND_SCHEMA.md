@@ -565,3 +565,7 @@ The exact sets, rep ranges and rest times should be seeded from the existing wor
 ## Nutrition target seed correction (2026-09-29)
 
 Migration 005 changes `forge_seed_user` to leave `nutrition_targets` empty for new accounts. The owner enters targets during onboarding, which stores a dated row. Existing rows are retained; the migration does not rewrite another user's nutrition history. The local PostgreSQL harness asserts zero target rows immediately after two signups, then adds explicit owner fixtures for RLS checks.
+
+## Set load interpretation (2026-09-30)
+
+No schema change is needed for body-weight dips. `workout_sets.weight_kg` already allows zero: for Dips and Upright Dips, zero records body weight and a positive value records added external load. Existing set rows keep their numeric value. The client labels zero as body weight and positive values as weighted dips. Weight and rep suggestions come from saved or pending sets in the current session, then `forge_previous_sets` for the first set.

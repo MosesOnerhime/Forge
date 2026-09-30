@@ -8,7 +8,7 @@ import { errorMessage } from '@/lib/data'
 import { localDate } from '@/lib/utils'
 import { storageValue, type Units } from '@/lib/units'
 import { RoutineTemplateChoice } from '@/components/routine-template-choice'
-import type { RoutineTemplate } from '@/lib/routine-templates'
+import { isScratchTemplate, type RoutineTemplate } from '@/lib/routine-templates'
 
 type TrainingDay = { day_of_week: number; name: string; is_rest_day: boolean }
 
@@ -152,7 +152,7 @@ function SetupForm() {
       if (routineError) throw routineError
       const { error: completeError } = await client.from('profiles').update({ onboarding_completed_at: new Date().toISOString() }).eq('user_id', user.id)
       if (completeError) throw completeError
-      router.replace('/today')
+      router.replace(templates.some(template => template.id === selectedTemplate && isScratchTemplate(template)) ? '/workouts/routine' : '/today')
       router.refresh()
     } catch (caught) {
       setError(errorMessage(caught))
@@ -170,7 +170,7 @@ function SetupForm() {
       <section className="card stack"><h2>3. Your routine</h2><p className="muted" style={{ margin: 0 }}>Choose a full weekly plan. You can edit it later and save your own version as a template.</p>{templates.length > 0 ? <RoutineTemplateChoice templates={templates} selected={selectedTemplate} onSelect={id => { const chosen = templates.find(template => template.id === id); setSelectedTemplate(id); setDays(chosen?.days ?? []); if (!nutritionTouched) { const runo = chosen?.user_id === null && chosen?.name === "Runo's Workout Routine"; setCalories(runo ? '2900' : ''); setProtein(runo ? '170' : ''); setCarbs(runo ? '375' : ''); setFat(runo ? '80' : '') } }} disabled={busy} /> : <div className="notice" role="alert">The routine templates did not load. Try again before finishing setup.</div>}</section>
       <section className="card stack"><h2>4. Daily nutrition targets</h2><p className="muted small" style={{margin:0}}>Runo&apos;s figures are from his brief. Other routines do not set nutrition needs; enter targets for the person using this account.</p><div className="fields cols-3">{([['Calories', calories, setCalories], ['Protein g', protein, setProtein], ['Carbs g', carbs, setCarbs], ['Fat g', fat, setFat]] as const).map(([label, value, setter]) => <div key={label}><label htmlFor={`setup-${label}`}>{label}</label><input id={`setup-${label}`} type="number" min="0" step="1" required value={value} onChange={event => { setNutritionTouched(true); setter(event.target.value) }} /></div>)}</div></section>
       <section className="card stack"><h2>5. Starting progress <span className="muted small">(optional)</span></h2><div className="field-row"><div><label htmlFor="setup-weight">Body weight ({units === 'metric' ? 'kg' : 'lb'})</label><input id="setup-weight" type="number" inputMode="decimal" min="0.01" step="0.01" value={weight} onChange={event => setWeight(event.target.value)} /></div><div><label htmlFor="setup-waist">Waist ({units === 'metric' ? 'cm' : 'in'})</label><input id="setup-waist" type="number" inputMode="decimal" min="0.01" step="0.01" value={waist} onChange={event => setWaist(event.target.value)} /></div></div><div className="field-row"><div><label htmlFor="starting-photo">Progress photo</label><input id="starting-photo" type="file" accept="image/jpeg,image/png,image/webp" onChange={event => setPhoto(event.target.files?.[0] ?? null)} /></div><div><label htmlFor="starting-view">Photo view</label><select id="starting-view" value={photoView} onChange={event => setPhotoView(event.target.value)}><option value="front">Front</option><option value="side">Side</option><option value="back">Back</option><option value="custom">Custom</option></select></div></div><p className="muted small" style={{ margin: 0 }}>You can add measurements and photos later.</p></section>
-      <button className="btn primary" disabled={busy || days.length !== 7} style={{ justifySelf: 'start' }}>{busy ? 'Saving setup…' : 'Open Today'}</button>
+      <button className="btn primary" disabled={busy || days.length !== 7} style={{ justifySelf: 'start' }}>{busy ? 'Saving setup…' : templates.some(template => template.id === selectedTemplate && isScratchTemplate(template)) ? 'Build my routine' : 'Open Today'}</button>
     </form>}
   </main>
 }

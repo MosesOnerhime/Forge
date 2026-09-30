@@ -423,7 +423,11 @@ For the initial personal deployment, the existing routine should already be prel
 
 ## Exercise reference media journey (2026-09-29)
 
-Edit routine -> choose the training day containing an exercise -> expand **Reference images & videos** below that exercise -> choose JPG/PNG/WebP (up to 10 MiB) or MP4/WebM (up to 50 MiB) -> Save reference -> View or Remove. During a workout, expand the same exercise's references and choose View to request a signed private link. Files remain attached to the exercise if its training day changes. The optional workout-day video still appears separately.
+Workouts, Edit routine, or a workout session -> scroll to the exercise -> see its image/video preview cards -> select one to enlarge or play it. In Edit routine or a session, choose **Add image or video**, select JPG/PNG/WebP (up to 10 MiB) or MP4/WebM (up to 50 MiB), and save. Remove is available on each owned card. Files remain attached to the exercise if its training day changes. The optional workout-day video appears separately as a preview card and can be uploaded from Edit routine or the session.
+
+## Set suggestion and dips flow (2026-09-30)
+
+Open an exercise in a session -> the next set starts with the last logged set's weight and reps, or the first set from the previous workout -> adjust either number -> log the set -> the following set inherits the new values. For Dips and Upright Dips, enter `0` added weight for body weight or a positive amount for weighted dips; the form and log state which one was recorded.
 
 ## Routine templates flow (2026-09-29)
 
@@ -432,3 +436,6 @@ New account -> onboarding -> choose Runo's plan, Mom's starter, or Build from sc
 ## Nutrition choice and Today order (2026-09-29)
 
 During onboarding, selecting Runo's plan can prefill his supplied nutrition figures. Selecting another plan clears those figures unless the user already entered their own targets. Today and Nutrition show consumed amounts and a Settings link if targets are absent. On phones, Today puts Log food before the full exercise list so it is reachable above the fixed navigation in the checked 390px viewport.
+## Build from scratch guidance (2026-09-30)
+
+Selecting the blank routine template shows the steps to configure training days, add exercises, and save a reusable template. New accounts choosing it finish onboarding in Edit routine rather than Today. The empty editor repeats the guide, and each recovery day explains how to turn it into a training day. Existing accounts loading the blank template reach the same editor.

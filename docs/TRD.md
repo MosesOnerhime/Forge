@@ -299,7 +299,13 @@ Database migrations must be stored in source control.
 
 ## Exercise reference media (2026-09-29)
 
-`202609290003_exercise_reference_media.sql` adds owner-scoped `exercise_reference_media` with a composite `(exercise_id, user_id)` foreign key to `exercises`, path checks for owner and exercise IDs, MIME and size constraints, and RLS. The private `exercise-reference-media` bucket accepts JPG/PNG/WebP and MP4/WebM, with a 50 MiB bucket cap; the table and client cap images at 10 MiB. Storage object policies restrict owner-folder reads, inserts, and deletes. Videos use the existing resumable TUS client; images use Storage upload. Metadata is inserted after the file, failed inserts trigger cleanup, and ambiguous saves are checked by path. Signed URLs are requested on View. JSON export includes metadata only.
+`202609290003_exercise_reference_media.sql` adds owner-scoped `exercise_reference_media` with a composite `(exercise_id, user_id)` foreign key to `exercises`, path checks for owner and exercise IDs, MIME and size constraints, and RLS. The private `exercise-reference-media` bucket accepts JPG/PNG/WebP and MP4/WebM, with a 50 MiB bucket cap; the table and client cap images at 10 MiB. Storage object policies restrict owner-folder reads, inserts, and deletes. Videos use the existing resumable TUS client; images use Storage upload. Metadata is inserted after the file, failed inserts trigger cleanup, and ambiguous saves are checked by path. Signed URLs load preview cards when the exercise is shown; opening a card requests a fresh signed URL for the full viewer. JSON export includes metadata only.
+
+## Visible references and set defaults (2026-09-30)
+
+The existing owner-scoped media schema serves previews in the weekly plan, routine editor, and session. The same upload component is enabled in sessions; no new Storage policy or migration is required. Video previews use the signed source's early frame and a fallback icon until it loads. A native dialog provides enlarged image/video viewing, Escape dismissal, and focus handling.
+
+The next set's controlled form values derive from the latest completed set in the current session; the first set falls back to the previous session RPC. Editing an existing set uses that set's values. The existing `workout_sets.weight_kg >= 0` constraint already stores body-weight dips as zero and positive weighted-dip additions; labels interpret that number without altering stored history.
 
 ## Routine templates (2026-09-29)
 

@@ -1,47 +1,80 @@
 'use client'
 
-import { useState, type FormEvent } from 'react'
-import { ImageSquare, Play, Trash, UploadSimple } from '@phosphor-icons/react'
+import { useEffect, useId, useRef, useState, type FormEvent } from 'react'
+import { ImageSquare, Play, Trash, UploadSimple, X } from '@phosphor-icons/react'
 import { supabase } from '@/lib/supabase'
 import { errorMessage, type ExerciseReferenceMedia as Media } from '@/lib/data'
 import { EXERCISE_MEDIA_BUCKET, exerciseMediaError, exerciseMediaPath, uploadExerciseMedia } from '@/lib/exercise-media'
 
 type Props = { exerciseId: string; exerciseName: string; userId: string; manage?: boolean }
 
+async function signedMediaUrl(item: Media) {
+  const { data, error } = await supabase().storage.from(EXERCISE_MEDIA_BUCKET).createSignedUrl(item.storage_path, 7200)
+  if (error) throw error
+  if (!data?.signedUrl) throw new Error('No view link was returned.')
+  return data.signedUrl
+}
+
 export function ExerciseReferenceMedia({ exerciseId, exerciseName, userId, manage = false }: Props) {
-  const [open, setOpen] = useState(false)
-  const [loading, setLoading] = useState(false)
+  const fileInputId = useId()
+  const [addOpen, setAddOpen] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
+  const [openingId, setOpeningId] = useState('')
   const [media, setMedia] = useState<Media[]>([])
   const [file, setFile] = useState<File | null>(null)
   const [fileKey, setFileKey] = useState(0)
   const [urls, setUrls] = useState<Record<string, string>>({})
+  const [active, setActive] = useState<{ item: Media; url: string } | null>(null)
+  const dialogRef = useRef<HTMLDialogElement>(null)
   const [progress, setProgress] = useState(0)
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
 
-  async function toggle() {
-    if (open) { setOpen(false); return }
-    setOpen(true); setLoading(true); setError('')
-    try {
-      const { data, error: queryError } = await supabase().from('exercise_reference_media')
-        .select('id,exercise_id,storage_path,original_name,mime_type,file_size_bytes,created_at')
-        .eq('exercise_id', exerciseId).order('created_at', { ascending: false })
-      if (queryError) throw queryError
-      setMedia(data as Media[])
-    } catch (caught) { setError(`References could not be loaded: ${errorMessage(caught)}`) }
-    finally { setLoading(false) }
-  }
+  useEffect(() => {
+    let live = true
+    void (async () => {
+      try {
+        const { data, error: queryError } = await supabase().from('exercise_reference_media')
+          .select('id,exercise_id,storage_path,original_name,mime_type,file_size_bytes,created_at')
+          .eq('exercise_id', exerciseId).order('created_at', { ascending: false })
+        if (queryError) throw queryError
+        if (!live) return
+        const rows = data as Media[]
+        setMedia(rows)
+        setLoading(false)
+        for (const item of rows) {
+          void signedMediaUrl(item).then(url => {
+            if (live) setUrls(previous => ({ ...previous, [item.id]: url }))
+          }).catch(() => {})
+        }
+      } catch (caught) {
+        if (live) { setError(`References could not be loaded: ${errorMessage(caught)}`); setLoading(false) }
+      }
+    })()
+    return () => { live = false }
+  }, [exerciseId])
+
+  useEffect(() => {
+    if (active && dialogRef.current && !dialogRef.current.open) dialogRef.current.showModal()
+  }, [active])
 
   async function view(item: Media) {
-    setBusy(true); setError('')
+    setOpeningId(item.id); setError('')
     try {
-      const { data, error: signError } = await supabase().storage.from(EXERCISE_MEDIA_BUCKET).createSignedUrl(item.storage_path, 7200)
-      if (signError) throw signError
-      if (!data?.signedUrl) throw new Error('No view link was returned.')
-      setUrls(previous => ({ ...previous, [item.id]: data.signedUrl }))
+      const url = await signedMediaUrl(item)
+      setUrls(previous => ({ ...previous, [item.id]: url }))
+      setActive({ item, url })
     } catch (caught) { setError(`Reference could not be opened: ${errorMessage(caught)}`) }
-    finally { setBusy(false) }
+    finally { setOpeningId('') }
+  }
+
+  function showSaved(item: Media) {
+    setMedia(previous => [item, ...previous])
+    void signedMediaUrl(item).then(url => setUrls(previous => ({ ...previous, [item.id]: url }))).catch(() => {})
+    setFile(null)
+    setFileKey(previous => previous + 1)
+    setAddOpen(false)
   }
 
   async function upload(event: FormEvent) {
@@ -61,8 +94,7 @@ export function ExerciseReferenceMedia({ exerciseId, exerciseName, userId, manag
         original_name: file.name, mime_type: file.type, file_size_bytes: file.size,
       }).select('id,exercise_id,storage_path,original_name,mime_type,file_size_bytes,created_at').single()
       if (saveError) throw saveError
-      setMedia(previous => [data as Media, ...previous])
-      setFile(null); setFileKey(previous => previous + 1)
+      showSaved(data as Media)
       setNotice(`${file.type.startsWith('image/') ? 'Image' : 'Video'} saved for ${exerciseName}.`)
     } catch (caught) {
       if (uploaded) {
@@ -70,8 +102,7 @@ export function ExerciseReferenceMedia({ exerciseId, exerciseName, userId, manag
           .select('id,exercise_id,storage_path,original_name,mime_type,file_size_bytes,created_at')
           .eq('storage_path', path).maybeSingle()
         if (existing) {
-          setMedia(previous => [existing as Media, ...previous])
-          setFile(null); setFileKey(previous => previous + 1)
+          showSaved(existing as Media)
           setNotice('Reference saved.'); setError('')
         } else if (lookupError) {
           setError('The upload finished, but its save could not be confirmed. Refresh before retrying.')
@@ -101,31 +132,49 @@ export function ExerciseReferenceMedia({ exerciseId, exerciseName, userId, manag
     finally { setBusy(false) }
   }
 
-  return <div style={{ marginTop: 12 }}>
-    <button type="button" className="btn ghost small" aria-expanded={open} aria-controls={`exercise-media-${exerciseId}`} onClick={toggle}>
-      <ImageSquare size={17} /> {open ? 'Hide references' : 'Reference images & videos'}
-    </button>
-    {open && <div id={`exercise-media-${exerciseId}`} className="stack" style={{ borderTop: '1px solid var(--line)', paddingTop: 16, marginTop: 14 }}>
+  if (!manage && !loading && media.length === 0 && !error) return null
+
+  return <section className="reference-section" aria-label={`${exerciseName} references`}>
+    <div className="reference-head">
+      <strong>References{media.length > 0 ? ` · ${media.length}` : ''}</strong>
+      {manage && <button type="button" className="btn ghost small" aria-expanded={addOpen} onClick={() => setAddOpen(value => !value)}>
+        <UploadSimple size={16} /> {addOpen ? 'Close upload' : 'Add image or video'}
+      </button>}
+    </div>
+    <div className="reference-content">
       {error && <div className="notice" role="alert">{error}</div>}
       {notice && <p className="muted small" role="status">{notice}</p>}
-      {loading ? <p className="muted small">Loading references…</p> : media.length ? media.map(item => <div key={item.id} className="item">
-        <div className="row wrap" style={{ justifyContent: 'space-between', gap: 10 }}>
-          <div><strong style={{ overflowWrap: 'anywhere' }}>{item.original_name}</strong><div className="muted small">{item.mime_type.startsWith('image/') ? 'Image' : 'Video'} · {(item.file_size_bytes / (1024 * 1024)).toFixed(1)} MB</div></div>
-          <div className="row wrap" style={{ justifyContent: 'flex-start' }}>
-            <button type="button" className="btn small" disabled={busy} onClick={() => void view(item)}>{item.mime_type.startsWith('image/') ? <ImageSquare size={16} /> : <Play size={16} />}{urls[item.id] ? 'Refresh link' : 'View'}</button>
-            {manage && <button type="button" className="btn ghost small danger" disabled={busy} onClick={() => void remove(item)} aria-label={`Remove ${item.original_name}`}><Trash size={16} /></button>}
-          </div>
-        </div>
-        {urls[item.id] && (item.mime_type.startsWith('image/')
-          // eslint-disable-next-line @next/next/no-img-element
-          ? <img src={urls[item.id]} alt={`${exerciseName} reference: ${item.original_name}`} style={{ display: 'block', maxWidth: '100%', maxHeight: 420, objectFit: 'contain', marginTop: 12, borderRadius: 12 }} />
-          : <video src={urls[item.id]} controls playsInline preload="none" aria-label={`${exerciseName} reference video`} style={{ display: 'block', width: '100%', maxHeight: 420, marginTop: 12, borderRadius: 12, background: 'var(--background)' }} />)}
-      </div>) : <p className="muted small">No reference images or videos for this exercise yet.</p>}
-      {manage && !loading && <form className="stack" onSubmit={upload}>
-        <div><label htmlFor={`exercise-media-file-${exerciseId}`}>Add an image or video</label><input key={fileKey} id={`exercise-media-file-${exerciseId}`} type="file" accept="image/jpeg,image/png,image/webp,video/mp4,video/webm" disabled={busy} onChange={event => setFile(event.target.files?.[0] ?? null)} /><p className="muted small" style={{ margin: '8px 0 0' }}>JPG, PNG, or WebP up to 10 MB; MP4 or WebM up to 50 MB. Private to your account.</p></div>
+      {loading ? <p className="muted small">Loading references…</p> : media.length ? <div className="reference-rail" aria-label={`${exerciseName} reference gallery`}>{media.map(item => {
+        const isImage = item.mime_type.startsWith('image/')
+        return <article className="reference-card" key={item.id}>
+          <button type="button" className="reference-open" disabled={busy || openingId === item.id} onClick={() => void view(item)} aria-label={`Open ${isImage ? 'image' : 'video'} reference ${item.original_name}`}>
+            <span className="reference-thumb">
+              {urls[item.id] ? isImage
+                // eslint-disable-next-line @next/next/no-img-element
+                ? <img src={urls[item.id]} alt="" loading="lazy" />
+                : <video src={`${urls[item.id]}#t=0.1`} preload="metadata" muted playsInline aria-hidden="true" />
+                : <span className="reference-fallback">{isImage ? <ImageSquare size={32} /> : <Play size={32} />}</span>}
+              {!isImage && <span className="reference-play"><Play size={18} weight="fill" /></span>}
+            </span>
+            <span className="reference-title">{item.original_name}</span>
+            <span className="reference-kind">{isImage ? 'Image' : 'Video'} · {(item.file_size_bytes / (1024 * 1024)).toFixed(1)} MB</span>
+          </button>
+          {manage && <button type="button" className="reference-remove" disabled={busy} onClick={() => void remove(item)} aria-label={`Remove ${item.original_name}`}><Trash size={17} /></button>}
+        </article>
+      })}</div> : manage ? <p className="muted small">No references yet. Add an image or video to this exercise.</p> : null}
+      {manage && addOpen && !loading && <form className="stack reference-upload" onSubmit={upload}>
+        <div><label htmlFor={fileInputId}>Add an image or video</label><input key={fileKey} id={fileInputId} type="file" accept="image/jpeg,image/png,image/webp,video/mp4,video/webm" disabled={busy} onChange={event => setFile(event.target.files?.[0] ?? null)} /><p className="muted small" style={{ margin: '8px 0 0' }}>JPG, PNG, or WebP up to 10 MB; MP4 or WebM up to 50 MB. Private to your account.</p></div>
         {busy && progress > 0 && <div className="muted small" role="status">Uploading {progress}%</div>}
         <button className="btn primary small" type="submit" disabled={busy || !file} style={{ justifySelf: 'start' }}><UploadSimple size={16} />{busy ? 'Saving…' : 'Save reference'}</button>
       </form>}
-    </div>}
-  </div>
+    </div>
+    <dialog ref={dialogRef} className="reference-dialog" onClose={() => setActive(null)} onClick={event => { if (event.target === event.currentTarget) event.currentTarget.close() }} aria-label={`${exerciseName} reference viewer`}>
+      {active && <><div className="reference-dialog-head"><strong>{active.item.original_name}</strong><button type="button" className="btn ghost small" onClick={() => dialogRef.current?.close()} aria-label="Close reference"><X size={20} /></button></div>
+        {active.item.mime_type.startsWith('image/')
+          // eslint-disable-next-line @next/next/no-img-element
+          ? <img src={active.url} alt={`${exerciseName} reference: ${active.item.original_name}`} />
+          : <video src={active.url} controls autoPlay playsInline preload="metadata" aria-label={`${exerciseName} reference video`} />}
+      </>}
+    </dialog>
+  </section>
 }

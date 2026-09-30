@@ -12,6 +12,7 @@ import { supabase } from '@/lib/supabase'
 import { errorMessage, type Session, type SessionExercise, type WorkoutSet, type Exercise } from '@/lib/data'
 import { sessionDurationMinutes,sessionSummary,setVolume } from '@/lib/metrics'
 import { displayValue,storageValue,unitLabel,type Units } from '@/lib/units'
+import { isDipExercise, suggestNextSet } from '@/lib/set-suggestions'
 import { useUnits } from '@/hooks/use-units'
 import { cacheOfflineWorkout } from '@/lib/offline-workout'
 import { PENDING_SETS_CHANGE, PENDING_SETS_KEY, mergePendingSets, queuePendingSet, readPendingSets, removePendingSet, syncPendingSets, type PendingSet } from '@/lib/pending-sets'
@@ -92,7 +93,7 @@ export default function SessionPage() {
     setBusy(true); setError(''); setSyncError('')
     try {
       const w = storageValue(Number(weight),'weight',units), r = Number(reps), reserve = rir === '' ? null : Number(rir)
-      if (!Number.isFinite(w) || w < 0 || w > 99999.99 || !Number.isInteger(r) || r < 0 || !Number.isInteger(setNumber) || setNumber < 1 || setNumber > 50 || (reserve !== null && (!Number.isFinite(reserve) || reserve < 0 || reserve > 10 || Math.round(reserve * 10) !== reserve * 10))) throw new Error('Enter a valid weight, whole number of reps, set number up to 50, and RIR from 0 to 10.')
+      if (weight.trim() === '' || reps.trim() === '' || !Number.isFinite(w) || w < 0 || w > 99999.99 || !Number.isInteger(r) || r < 0 || !Number.isInteger(setNumber) || setNumber < 1 || setNumber > 50 || (reserve !== null && (!Number.isFinite(reserve) || reserve < 0 || reserve > 10 || Math.round(reserve * 10) !== reserve * 10))) throw new Error('Enter a valid weight, whole number of reps, set number up to 50, and RIR from 0 to 10.')
       const queued = queuePendingSet({ userId: user.id, sessionId: id, sessionExerciseId: item.id, setNumber, weightKg: w, reps: r, rir: reserve, completedAt: new Date().toISOString() })
       if (!queued) throw new Error('This set could not be saved on this device. Check browser storage and try again.')
       setPending(readPendingSets(user.id))
@@ -187,7 +188,7 @@ export default function SessionPage() {
     {syncError && <div className="notice" role="alert" style={{ marginBottom: 16 }}>{syncError}</div>}
     {sessionPending.length > 0 && <div className="notice" role="status" style={{ marginBottom: 16 }}><strong>Waiting to sync.</strong> {sessionPending.length} set{sessionPending.length === 1 ? '' : 's'} saved on this device. Do not clear site data before they upload.<button className="btn small" type="button" disabled={busy || !online} onClick={retrySync} style={{ marginLeft: 12 }}>Retry now</button></div>}
     {loading ? <div className="empty">Loading session…</div> : !session ? <div className="empty">Session not found.</div> : <>
-      {user && session.workout_day_id && <WorkoutReferenceVideo key={`${user.id}:${session.workout_day_id}`} dayId={session.workout_day_id} dayName={session.workout_days?.name ?? 'this workout'} userId={user.id} />}
+      {user && session.workout_day_id && <WorkoutReferenceVideo key={`${user.id}:${session.workout_day_id}`} dayId={session.workout_day_id} dayName={session.workout_days?.name ?? 'this workout'} userId={user.id} manage />}
       <div className="stack">{displayItems.map((item, index) => <ExerciseCard key={item.id} item={item} userId={user?.id ?? ''} position={index + 1} previous={previous[item.exercise_id] ?? []} bestVolume={historicalBests[item.exercise_id] ?? 0} exercises={exercises} units={units} editable={session.status === 'active'} busy={busy} onSave={saveSet} onDelete={deleteSet} onSkip={skip} onSubstitute={substitute} />)}</div>
       <SessionNotes initial={session.notes ?? ''} editable={session.status === 'active'} busy={busy} onSave={saveNotes} />
       {session.status === 'active' && <div className="row wrap" style={{ marginTop: 24 }}><button className="btn primary" disabled={busy || sessionPending.length > 0} onClick={() => finish('completed')}><Check size={18} /> Finish workout</button><button className="btn danger" disabled={busy || sessionPending.length > 0} onClick={() => finish('cancelled')}>Cancel session</button></div>}
@@ -209,22 +210,50 @@ function SessionNotes({ initial, editable, busy, onSave }: { initial: string; ed
 }
 
 function ExerciseCard({ item, userId, position, previous, bestVolume, exercises, units, editable, busy, onSave, onDelete, onSkip, onSubstitute }: { item: SessionExercise; userId: string; position: number; previous: WorkoutSet[]; bestVolume: number; exercises: Exercise[]; units:Units; editable: boolean; busy: boolean; onSave: (item: SessionExercise, setNumber: number, weight: string, reps: string, rir: string) => Promise<boolean>; onDelete: (set: WorkoutSet) => void; onSkip: (item: SessionExercise) => void; onSubstitute: (item: SessionExercise, exerciseId: string) => void }) {
-  const [weight, setWeight] = useState(''), [reps, setReps] = useState(''), [rir, setRir] = useState('2')
   const [editing, setEditing] = useState<number | null>(null), [showSubstitute, setShowSubstitute] = useState(false)
   const next = Math.max(0, ...item.workout_sets.map(set => set.set_number)) + 1
   const setNumber = editing ?? next
-  const last = previous.find(set => set.set_number === setNumber) ?? previous[previous.length - 1]
+  const suggestion = suggestNextSet(item.workout_sets, previous)
+  const initialSet = editing === null ? suggestion.set : item.workout_sets.find(set => set.set_number === editing) ?? null
+  const dips = isDipExercise(item.exercises.name)
   const pr = bestVolume > 0 && item.workout_sets.some(set => set.completed && !set.pending && setVolume(set) > bestVolume)
-  function edit(set: WorkoutSet) { setEditing(set.set_number); setWeight(String(displayValue(set.weight_kg,'weight',units) ?? '')); setReps(String(set.reps ?? '')); setRir(set.rir === null ? '' : String(set.rir)) }
-  async function submit(e: FormEvent) { e.preventDefault(); if (await onSave(item, setNumber, weight, reps, rir)) { setEditing(null); setWeight(''); setReps('') } }
+  function setLabel(set: WorkoutSet) {
+    if (dips && set.weight_kg === 0) return `Body weight × ${set.reps}`
+    if (dips && set.weight_kg !== null && set.weight_kg > 0) return `Weighted dips · +${displayValue(set.weight_kg, 'weight', units)} ${unitLabel('weight', units)} × ${set.reps}`
+    return `${displayValue(set.weight_kg, 'weight', units)} ${unitLabel('weight', units)} × ${set.reps}`
+  }
   return <section className="card" style={{ opacity: item.skipped ? .6 : 1 }}>
     <div className="row wrap"><div className="row" style={{ justifyContent: 'flex-start' }}><span className="pill orange">{String(position).padStart(2, '0')}</span><h2>{item.exercises.name}</h2></div>{editable && <button className="btn ghost small" disabled={busy} onClick={() => onSkip(item)}>{item.skipped ? 'Undo skip' : 'Skip'}</button>}</div>
     <div className="row wrap" style={{ justifyContent: 'flex-start', marginTop: 12 }}><span className="pill">{item.target_sets} × {item.min_reps}–{item.max_reps} reps</span><span className="pill"><Timer size={13} /> {Math.round(item.rest_seconds / 60)} min rest</span>{pr && <span className="pill green"><Trophy size={13} /> New volume PR</span>}</div>
-    {previous.length > 0 && <p className="muted small">Last time: {previous.map(set => `${displayValue(set.weight_kg,'weight',units)} ${unitLabel('weight',units)} × ${set.reps}`).join(' · ')}</p>}
+    {previous.length > 0 && <p className="muted small">Last time: {previous.map(setLabel).join(' · ')}</p>}
     <Link href={`/workouts/exercise/${item.exercise_id}`} className="muted small" style={{ display: 'inline-block', marginTop: 8, textDecoration: 'underline', textUnderlineOffset: 3 }}>View exercise history</Link>
-    {userId && <ExerciseReferenceMedia exerciseId={item.exercise_id} exerciseName={item.exercises.name} userId={userId} />}
+    {userId && <ExerciseReferenceMedia key={item.exercise_id} exerciseId={item.exercise_id} exerciseName={item.exercises.name} userId={userId} manage />}
     {editable && <><button className="btn ghost small" disabled={busy} style={{ marginTop: 10 }} onClick={() => setShowSubstitute(!showSubstitute)}>{showSubstitute ? 'Close replacement' : 'Replace exercise'}</button>{showSubstitute && <div style={{ marginTop: 10 }}><label htmlFor={`sub-${item.id}`}>Use a different exercise this session</label><select id={`sub-${item.id}`} value={item.exercise_id} disabled={busy} onChange={e => { onSubstitute(item, e.target.value); setShowSubstitute(false) }}>{exercises.map(exercise => <option key={exercise.id} value={exercise.id}>{exercise.name}</option>)}</select></div>}</>}
-    {item.workout_sets.length > 0 && <div style={{ marginTop: 18 }}>{item.workout_sets.map(set => <div className="item row wrap" key={set.id}><span className="muted small">Set {set.set_number}{set.pending && <span className="pill orange" style={{ marginLeft: 8 }}>Waiting to sync</span>}</span><strong>{displayValue(set.weight_kg,'weight',units)} {unitLabel('weight',units)} × {set.reps} <span className="muted small">· {set.rir ?? '—'} RIR</span></strong>{editable && <div className="row"><button className="btn ghost small" aria-label={`Edit set ${set.set_number}`} disabled={busy} onClick={() => edit(set)}><PencilSimple size={16} /></button><button className="btn ghost small danger" aria-label={set.pending ? `Discard pending set ${set.set_number}` : `Delete set ${set.set_number}`} disabled={busy} onClick={() => onDelete(set)}><Trash size={16} /></button></div>}</div>)}</div>}
-    {editable && !item.skipped && <form onSubmit={submit} style={{ marginTop: 18 }}><div className="fields cols-3"><div><label htmlFor={`w-${item.id}`}>Set {setNumber} · Weight {unitLabel('weight',units)}</label><input id={`w-${item.id}`} type="number" inputMode="decimal" min="0" step="0.1" placeholder={String(displayValue(last?.weight_kg??null,'weight',units)??0)} required value={weight} onChange={e => setWeight(e.target.value)} /></div><div><label htmlFor={`r-${item.id}`}>Reps</label><input id={`r-${item.id}`} type="number" inputMode="numeric" min="0" step="1" placeholder={last?.reps?.toString() ?? `${item.min_reps}`} required value={reps} onChange={e => setReps(e.target.value)} /></div><div><label htmlFor={`rir-${item.id}`}>RIR</label><input id={`rir-${item.id}`} type="number" inputMode="decimal" min="0" max="10" step="0.5" value={rir} onChange={e => setRir(e.target.value)} /></div></div><div className="row wrap" style={{ justifyContent: 'flex-start', marginTop: 12 }}><button className="btn primary" type="submit" disabled={busy}><Plus size={17} /> {editing ? 'Update set' : 'Log set'}</button>{editing && <button className="btn ghost" type="button" onClick={() => { setEditing(null); setWeight(''); setReps('') }}>Cancel edit</button>}</div></form>}
+    {item.workout_sets.length > 0 && <div style={{ marginTop: 18 }}>{item.workout_sets.map(set => <div className="item row wrap" key={set.id}><span className="muted small">Set {set.set_number}{set.pending && <span className="pill orange" style={{ marginLeft: 8 }}>Waiting to sync</span>}</span><strong>{setLabel(set)} <span className="muted small">· {set.rir ?? '—'} RIR</span></strong>{editable && <div className="row"><button className="btn ghost small" aria-label={`Edit set ${set.set_number}`} disabled={busy} onClick={() => setEditing(set.set_number)}><PencilSimple size={16} /></button><button className="btn ghost small danger" aria-label={set.pending ? `Discard pending set ${set.set_number}` : `Delete set ${set.set_number}`} disabled={busy} onClick={() => onDelete(set)}><Trash size={16} /></button></div>}</div>)}</div>}
+    {editable && !item.skipped && <SetEntryForm key={`${item.exercise_id}:${setNumber}:${editing === null ? 'new' : 'edit'}`} item={item} setNumber={setNumber} initialSet={initialSet} source={editing === null ? suggestion.source : null} dips={dips} units={units} busy={busy} editing={editing !== null} onSave={onSave} onCancel={() => setEditing(null)} onSaved={() => setEditing(null)} />}
   </section>
+}
+
+function SetEntryForm({ item, setNumber, initialSet, source, dips, units, busy, editing, onSave, onCancel, onSaved }: { item: SessionExercise; setNumber: number; initialSet: WorkoutSet | null; source: string | null; dips: boolean; units: Units; busy: boolean; editing: boolean; onSave: (item: SessionExercise, setNumber: number, weight: string, reps: string, rir: string) => Promise<boolean>; onCancel: () => void; onSaved: () => void }) {
+  const [weight, setWeight] = useState(String(displayValue(initialSet?.weight_kg ?? null, 'weight', units) ?? (dips ? 0 : '')))
+  const [reps, setReps] = useState(initialSet?.reps?.toString() ?? '')
+  const [rir, setRir] = useState(editing ? initialSet?.rir?.toString() ?? '' : '2')
+  const load = Number(weight)
+  const dipState = dips && weight !== '' ? load === 0 ? 'Body weight' : load > 0 ? `Weighted dips · +${weight} ${unitLabel('weight', units)}` : '' : ''
+
+  async function submit(event: FormEvent) {
+    event.preventDefault()
+    if (await onSave(item, setNumber, weight, reps, rir) && editing) onSaved()
+  }
+
+  return <form onSubmit={submit} style={{ marginTop: 18 }}>
+    {!editing && source && <p className="muted small" style={{ margin: '0 0 10px' }}>Suggested from {source.toLowerCase()}. Change either value if needed.</p>}
+    <div className="fields cols-3">
+      <div><label htmlFor={`w-${item.id}`}>Set {setNumber} · {dips ? 'Added weight' : 'Weight'} {unitLabel('weight', units)}</label><input id={`w-${item.id}`} type="number" inputMode="decimal" min="0" step="0.1" placeholder={dips ? '0 = body weight' : 'Weight'} required value={weight} onChange={event => setWeight(event.target.value)} /></div>
+      <div><label htmlFor={`r-${item.id}`}>Reps</label><input id={`r-${item.id}`} type="number" inputMode="numeric" min="0" step="1" placeholder={`${item.min_reps}`} required value={reps} onChange={event => setReps(event.target.value)} /></div>
+      <div><label htmlFor={`rir-${item.id}`}>RIR</label><input id={`rir-${item.id}`} type="number" inputMode="decimal" min="0" max="10" step="0.5" value={rir} onChange={event => setRir(event.target.value)} /></div>
+    </div>
+    {dips && <p className="muted small" style={{ margin: '10px 0 0' }}>{dipState || 'Use 0 for body weight; enter added weight for weighted dips.'}</p>}
+    <div className="row wrap" style={{ justifyContent: 'flex-start', marginTop: 12 }}><button className="btn primary" type="submit" disabled={busy}><Plus size={17} /> {editing ? 'Update set' : 'Log set'}</button>{editing && <button className="btn ghost" type="button" onClick={onCancel}>Cancel edit</button>}</div>
+  </form>
 }

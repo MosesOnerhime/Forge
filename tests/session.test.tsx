@@ -45,6 +45,8 @@ class Query {
     if (this.table === 'workout_sessions') return Promise.resolve({ data: { ...store.session }, error: null })
     if (this.table === 'session_exercises') return Promise.resolve({ data: [{ ...store.item, workout_sets: [...store.item.workout_sets] }], error: null })
     if (this.table === 'exercises') return Promise.resolve({ data: [{ id: 'exercise-a', name: 'Row' }], error: null })
+    if (this.table === 'exercise_reference_media') return Promise.resolve({ data: [], error: null })
+    if (this.table === 'workout_reference_videos') return Promise.resolve({ data: null, error: null })
     if (this.table === 'profiles') return Promise.resolve({ data: { timer_notifications: false }, error: null })
     throw new Error(`No fixture for ${this.table}`)
   }
@@ -91,6 +93,7 @@ beforeEach(() => {
   vi.spyOn(window, 'confirm').mockReturnValue(true)
   Object.assign(store.session, { status: 'active', completed_at: null, notes: null })
   store.item.skipped = false
+  store.item.exercises.name = 'Row'
   store.item.workout_sets = [workoutSet]
   store.failFinish = false
   store.failSkip = false
@@ -143,5 +146,32 @@ describe('Workout session request recovery', () => {
     await clickButton(page, 'Skip')
     expect(store.item.skipped).toBe(true)
     expect(page.textContent).toContain('Undo skip')
+  })
+})
+
+describe('Workout set defaults and exercise references', () => {
+  it('prefills the next set from the previous set and exposes upload in the session', async () => {
+    const page = await renderSession()
+    expect(page.querySelector<HTMLInputElement>('#w-item-a')?.value).toBe('60')
+    expect(page.querySelector<HTMLInputElement>('#r-item-a')?.value).toBe('8')
+    expect(page.textContent).toContain('Suggested from set 1')
+    await clickButton(page, 'Add image or video')
+    expect(page.querySelector('input[type="file"]')).toBeTruthy()
+  })
+
+  it('shows zero-load dips as body weight and a positive load as weighted dips', async () => {
+    store.item.exercises.name = 'Dips'
+    store.item.workout_sets = [{ ...workoutSet, weight_kg: 0 }]
+    const page = await renderSession()
+    expect(page.querySelector<HTMLInputElement>('#w-item-a')?.value).toBe('0')
+    expect(page.textContent).toContain('Body weight × 8')
+    await act(async () => { root!.unmount() })
+    container?.remove()
+    root = null
+    container = null
+    store.item.workout_sets = [{ ...workoutSet, weight_kg: 15 }]
+    const weighted = await renderSession()
+    expect(weighted.querySelector<HTMLInputElement>('#w-item-a')?.value).toBe('15')
+    expect(weighted.textContent).toContain('Weighted dips · +15 kg × 8')
   })
 })

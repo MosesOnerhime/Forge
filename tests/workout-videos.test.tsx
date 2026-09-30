@@ -69,6 +69,7 @@ async function renderVideo(manage = true) {
 }
 
 async function selectAndUpload(page: HTMLDivElement) {
+  await act(async () => { page.querySelector<HTMLButtonElement>('[aria-expanded]')!.click() })
   const input = page.querySelector<HTMLInputElement>('input[type="file"]')!
   const file = new File(['video bytes'], 'form-demo.mp4', { type: 'video/mp4' })
   await act(async () => {
@@ -85,6 +86,8 @@ beforeEach(() => {
   store.uploads = []
   store.failCleanup = false
   uploadStub.mockClear()
+  HTMLDialogElement.prototype.showModal = function () { this.open = true }
+  HTMLDialogElement.prototype.close = function () { this.open = false; this.dispatchEvent(new Event('close')) }
 })
 
 afterEach(async () => {
@@ -114,9 +117,10 @@ describe('Workout reference videos', () => {
     expect(store.uploads[0]).toMatchObject({ user_id: 'user-a', workout_day_id: 'day-a', original_name: 'form-demo.mp4' })
     expect(store.uploads[0].storage_path).toMatch(/^user-a\/day-a\/.+\.mp4$/)
     expect(page.textContent).toContain('Reference video saved.')
-    const watch = [...page.querySelectorAll('button')].find(button => button.textContent?.includes('Watch reference'))!
+    expect(page.querySelector('.reference-rail video')).toBeTruthy()
+    const watch = page.querySelector<HTMLButtonElement>('[aria-label="Play workout reference form-demo.mp4"]')!
     await act(async () => { watch.click() })
-    expect(page.querySelector('video')?.getAttribute('src')).toBe('https://example.test/private-video')
+    expect(page.querySelector('dialog[open] video')?.getAttribute('src')).toBe('https://example.test/private-video')
   })
 
   it('retains the new video and offers old-file cleanup after cleanup fails', async () => {

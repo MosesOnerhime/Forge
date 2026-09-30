@@ -287,6 +287,12 @@ The user specified Cable Lateral Raise as the target for a test video and asked 
 
 Acceptance: an owner can upload a supported file, see its name, open a signed image/video link, and see it on the same exercise in a session. Another account cannot read, attach, or delete that media. Unsupported, empty, or oversized files are rejected before upload.
 
+## Reference gallery and set logging addendum (2026-09-30)
+
+Exercise images and videos appear as visible, horizontally scrollable preview cards in the weekly plan, routine editor, and workout session. Selecting a card opens a larger private image or playable video. An owner can add and remove exercise references during a workout session as well as in Edit routine. The scheduled workout-day video has a visible preview and can also be uploaded from the session page. Private preview links are short lived; opening a card requests a fresh signed link.
+
+When logging a new set, prefill weight and reps from the latest completed set for that exercise in the current workout. If none exists, use the first set from the previous workout when available. The user can edit both values before saving. For Dips and Upright Dips, `0 kg` (or `0 lb` in imperial display) represents body weight; a positive number represents added load and is clearly labelled weighted dips in the entry form and logged history.
+
 ## Routine templates addendum (2026-09-29)
 
 First-use setup offers Runo's Workout Routine, Mom's Starter Routine, and a blank week. Selection loads seven days and their exercise prescriptions. A signed-in user can edit day names, training/recovery state, durations, exercises, and prescriptions; save the current week as a private template; and load a template later. Switching archives the previous program so past sessions still resolve to their original days. Active sessions block a switch. Exercise reference media remains owner-private and attached to the owner's exercise records; scheduled-day videos stay with the archived days. Runo's initial prescriptions remain provisional until the missing original document is supplied.
@@ -294,3 +300,6 @@ First-use setup offers Runo's Workout Routine, Mom's Starter Routine, and a blan
 ## Personal nutrition targets (2026-09-29)
 
 Each new account chooses its own calorie and macro targets during setup. Runo's numbers may prefill only when Runo's routine is selected; another routine must not inherit them. Today and Nutrition show logged amounts without a made-up goal if no target exists, with a path to Settings to add one.
+## Build from scratch guidance (2026-09-30)
+
+When a user chooses the blank routine template, show actionable instructions for configuring a training day, adding exercises, and saving the finished week. After first-use setup, take that user to Edit routine with the guide visible. Keep recovery-day instructions near the day controls.

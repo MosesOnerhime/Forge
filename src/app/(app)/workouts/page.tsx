@@ -1,16 +1,72 @@
 'use client'
 
-import { useEffect,useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useAuth } from '@/components/auth-provider'
+import { ExerciseReferenceMedia } from '@/components/exercise-reference-media'
 import { supabase } from '@/lib/supabase'
-import { dayNumber,niceDate } from '@/lib/utils'
-import { errorMessage,type WorkoutDay,type ProgramExercise,type Session } from '@/lib/data'
+import { dayNumber, niceDate } from '@/lib/utils'
+import { errorMessage, type WorkoutDay, type ProgramExercise, type Session } from '@/lib/data'
 
-const weekdays=['','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday']
+const weekdays = ['', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+
 export default function Workouts() {
-  const {user}=useAuth();const [days,setDays]=useState<WorkoutDay[]>([]);const [items,setItems]=useState<ProgramExercise[]>([]);const [sessions,setSessions]=useState<Session[]>([]);const [selected,setSelected]=useState(dayNumber());const [error,setError]=useState('');const [loading,setLoading]=useState(true)
-  useEffect(()=>{if(!user)return;let live=true;(async()=>{try{const client=supabase();const {data:program,error:programError}=await client.from('workout_programs').select('id').eq('active',true).maybeSingle();if(programError)throw programError;const [dayResult,sessionResult]=await Promise.all([client.from('workout_days').select('id,day_of_week,name,is_rest_day,estimated_minutes_min,estimated_minutes_max').eq('program_id',program?.id??'00000000-0000-0000-0000-000000000000').order('day_of_week'),client.from('workout_sessions').select('id,workout_day_id,started_at,completed_at,status,notes,workout_days(name)').order('started_at',{ascending:false}).limit(20)]);if(dayResult.error)throw dayResult.error;if(sessionResult.error)throw sessionResult.error;const ids=(dayResult.data??[]).map(d=>d.id);const {data:plan,error:planError}=await client.from('program_exercises').select('id,workout_day_id,exercise_id,sort_order,target_sets,min_reps,max_reps,rest_seconds_min,notes,exercises(id,name)').in('workout_day_id',ids.length?ids:['00000000-0000-0000-0000-000000000000']).order('sort_order');if(planError)throw planError;if(live){setDays(dayResult.data??[]);setItems((plan??[]) as unknown as ProgramExercise[]);setSessions((sessionResult.data??[]) as unknown as Session[])}}catch(caught){if(live)setError(errorMessage(caught))}finally{if(live)setLoading(false)}})();return()=>{live=false}},[user])
-  const day=days.find(d=>d.day_of_week===selected)
-  return <><div className="page-head"><div className="eyebrow">Your training</div><h1>The weekly plan.</h1><p>Know what is next. See what you did.</p><Link href="/workouts/routine" className="btn small" style={{marginTop:14}}>Edit routine →</Link></div>{error&&<div className="notice" role="alert">{error}</div>}<div className="tab-list" role="tablist" aria-label="Training days">{weekdays.slice(1).map((name,index)=><button key={name} className={`tab ${selected===index+1?'active':''}`} role="tab" aria-selected={selected===index+1} onClick={()=>setSelected(index+1)}>{name.slice(0,3)}</button>)}</div><section className="card" style={{marginTop:16}}>{loading?<p className="muted">Loading your routine…</p>:!day?<div className="empty">No active routine found. Apply the database migration and sign in again.</div>:<><div className="row wrap"><div><div className="eyebrow">{weekdays[selected]} · {day.is_rest_day?'Recovery':'Training'}</div><h2 style={{marginTop:8}}>{day.name}</h2></div>{!day.is_rest_day&&<span className="pill orange">{day.estimated_minutes_min}–{day.estimated_minutes_max} min</span>}</div>{day.is_rest_day?<p className="muted">A planned break. Recover and keep nutrition steady.</p>:<div style={{marginTop:24}}>{items.filter(item=>item.workout_day_id===day.id).map((item,index)=><div className="item row" key={item.id}><div className="row" style={{justifyContent:'flex-start'}}><span className="pill">{String(index+1).padStart(2,'0')}</span><div><h3>{item.exercises.name}</h3><div className="muted small" style={{marginTop:5}}>{item.target_sets} sets · {item.min_reps}–{item.max_reps} reps · {Math.round(item.rest_seconds_min/60)} min rest</div></div></div></div>)}</div>}</>}</section><div id="history" className="section-head"><h2>Recent sessions</h2></div>{sessions.length===0?<div className="empty">Your completed workouts will show up here.</div>:<div className="stack">{sessions.map(session=><Link href={`/workouts/session/${session.id}`} className="card row" key={session.id}><div><div className="eyebrow">{niceDate(session.started_at)}</div><h3 style={{marginTop:7}}>{session.workout_days?.name??'Workout'}</h3><div className="muted small" style={{marginTop:5}}>{session.status==='active'?'In progress':session.status==='completed'?'Completed':'Cancelled'}</div></div><span className="pill">View →</span></Link>)}</div>}</>
+  const { user } = useAuth()
+  const [days, setDays] = useState<WorkoutDay[]>([])
+  const [items, setItems] = useState<ProgramExercise[]>([])
+  const [sessions, setSessions] = useState<Session[]>([])
+  const [selected, setSelected] = useState(dayNumber())
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    if (!user) return
+    let live = true
+    void (async () => {
+      try {
+        const client = supabase()
+        const { data: program, error: programError } = await client.from('workout_programs').select('id').eq('active', true).maybeSingle()
+        if (programError) throw programError
+        const [dayResult, sessionResult] = await Promise.all([
+          client.from('workout_days').select('id,day_of_week,name,is_rest_day,estimated_minutes_min,estimated_minutes_max').eq('program_id', program?.id ?? '00000000-0000-0000-0000-000000000000').order('day_of_week'),
+          client.from('workout_sessions').select('id,workout_day_id,started_at,completed_at,status,notes,workout_days(name)').order('started_at', { ascending: false }).limit(20),
+        ])
+        if (dayResult.error) throw dayResult.error
+        if (sessionResult.error) throw sessionResult.error
+        const ids = (dayResult.data ?? []).map(day => day.id)
+        const { data: plan, error: planError } = await client.from('program_exercises')
+          .select('id,workout_day_id,exercise_id,sort_order,target_sets,min_reps,max_reps,rest_seconds_min,notes,exercises(id,name)')
+          .in('workout_day_id', ids.length ? ids : ['00000000-0000-0000-0000-000000000000']).order('sort_order')
+        if (planError) throw planError
+        if (live) {
+          setDays(dayResult.data ?? [])
+          setItems((plan ?? []) as unknown as ProgramExercise[])
+          setSessions((sessionResult.data ?? []) as unknown as Session[])
+        }
+      } catch (caught) { if (live) setError(errorMessage(caught)) }
+      finally { if (live) setLoading(false) }
+    })()
+    return () => { live = false }
+  }, [user])
+
+  const day = days.find(value => value.day_of_week === selected)
+
+  return <>
+    <div className="page-head"><div className="eyebrow">Your training</div><h1>The weekly plan.</h1><p>Know what is next. See what you did.</p><Link href="/workouts/routine" className="btn small" style={{ marginTop: 14 }}>Edit routine →</Link></div>
+    {error && <div className="notice" role="alert">{error}</div>}
+    <div className="tab-list" role="tablist" aria-label="Training days">{weekdays.slice(1).map((name, index) => <button key={name} className={`tab ${selected === index + 1 ? 'active' : ''}`} role="tab" aria-selected={selected === index + 1} onClick={() => setSelected(index + 1)}>{name.slice(0, 3)}</button>)}</div>
+    <section className="card" style={{ marginTop: 16 }}>
+      {loading ? <p className="muted">Loading your routine…</p> : !day ? <div className="empty">No active routine found. Apply the database migration and sign in again.</div> : <>
+        <div className="row wrap"><div><div className="eyebrow">{weekdays[selected]} · {day.is_rest_day ? 'Recovery' : 'Training'}</div><h2 style={{ marginTop: 8 }}>{day.name}</h2></div>{!day.is_rest_day && <span className="pill orange">{day.estimated_minutes_min}–{day.estimated_minutes_max} min</span>}</div>
+        {day.is_rest_day ? <p className="muted">A planned break. Recover and keep nutrition steady.</p> : <div style={{ marginTop: 24 }}>
+          {items.filter(item => item.workout_day_id === day.id).map((item, index) => <div className="item" key={item.id}>
+            <div className="row" style={{ justifyContent: 'flex-start' }}><span className="pill">{String(index + 1).padStart(2, '0')}</span><div><h3>{item.exercises.name}</h3><div className="muted small" style={{ marginTop: 5 }}>{item.target_sets} sets · {item.min_reps}–{item.max_reps} reps · {Math.round(item.rest_seconds_min / 60)} min rest</div></div></div>
+            {user && <ExerciseReferenceMedia exerciseId={item.exercise_id} exerciseName={item.exercises.name} userId={user.id} />}
+          </div>)}
+        </div>}
+      </>}
+    </section>
+    <div id="history" className="section-head"><h2>Recent sessions</h2></div>
+    {sessions.length === 0 ? <div className="empty">Your completed workouts will show up here.</div> : <div className="stack">{sessions.map(session => <Link href={`/workouts/session/${session.id}`} className="card row" key={session.id}><div><div className="eyebrow">{niceDate(session.started_at)}</div><h3 style={{ marginTop: 7 }}>{session.workout_days?.name ?? 'Workout'}</h3><div className="muted small" style={{ marginTop: 5 }}>{session.status === 'active' ? 'In progress' : session.status === 'completed' ? 'Completed' : 'Cancelled'}</div></div><span className="pill">View →</span></Link>)}</div>}
+  </>
 }

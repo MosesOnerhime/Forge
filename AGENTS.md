@@ -127,3 +127,5 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - 2026-09-30: Added a separate PostgreSQL 16 service job to `.github/workflows/verify.yml` to apply every migration and run `scripts/local_db_checks.sql` on pull requests and `main` pushes. Verify its first remote run before calling the database CI gate green. This does not repair the production Supabase ledger.
 
 - 2026-09-30: The existing Windows PostgreSQL 16 harness passed again with all migrations after the CI job was added; its temporary cluster was removed. The Linux service job still needs a remote passing run.
+
+- 2026-09-30: GitHub Actions run `36657335269` passed both app and PostgreSQL database jobs for `d434178`, and Vercel status is success. Supabase Preview still fails at initial `profiles` creation in the production project. Clean CI migrations do not resolve that remote ledger mismatch.

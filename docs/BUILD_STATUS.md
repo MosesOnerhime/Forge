@@ -93,3 +93,5 @@ The source did not include exact sets, rep ranges, and rest prescriptions. Seed 
 - 2026-09-30: Added a separate GitHub Actions PostgreSQL 16 job that applies `scripts/local_db_bootstrap.sql`, all six migrations in filename order, and `scripts/local_db_checks.sql`. It runs against an ephemeral service container and checks owner isolation without production credentials. The first remote database job must pass before counting this CI gate as verified; the production Supabase migration-history conflict remains separate.
 
 - 2026-09-30: Re-ran the local PostgreSQL 16 harness after adding the CI job; all migrations and owner-isolation checks passed, and the disposable cluster stopped and was removed. GitHub's new service job remains unverified until its first run.
+
+- 2026-09-30: GitHub Actions run `36657335269` passed both `app` and `database` jobs on commit `d434178`; Vercel status is success. The separate Supabase Preview check for the configured production project still fails at `profiles` creation. The new CI job proves clean migration application and local-harness isolation under PostgreSQL 16, not the current production ledger or live Auth/Storage behavior.

@@ -8,9 +8,10 @@ type Props = {
   selected: string
   onSelect: (id: string) => void
   disabled?: boolean
+  onboarding?: boolean
 }
 
-export function RoutineTemplateChoice({ templates, selected, onSelect, disabled = false }: Props) {
+export function RoutineTemplateChoice({ templates, selected, onSelect, disabled = false, onboarding = false }: Props) {
   return <div className="stack" role="radiogroup" aria-label="Workout routine template">
     {templates.map(template => <label className="item" key={template.id} style={{ cursor: disabled ? 'default' : 'pointer' }}>
       <span className="row" style={{ justifyContent: 'flex-start', alignItems: 'flex-start' }}>
@@ -23,10 +24,10 @@ export function RoutineTemplateChoice({ templates, selected, onSelect, disabled 
           <span id={`template-summary-${template.id}`} className="muted small">{templateSummary(template.days)}</span>
         </span>
       </span>
-      {selected === template.id && isScratchTemplate(template) && <div className="notice" role="note" style={{ marginTop: 12, marginLeft: 32 }}>
+      {selected === template.id && isScratchTemplate(template) && <div className="scratch-guide" role="note">
         <strong>How to build your week</strong>
-        <ol style={{ margin: '8px 0 0', paddingLeft: 20 }}>
-          <li>Finish setup, then open Edit routine.</li>
+        <ol>
+          <li>{onboarding ? 'Finish setup; Forge opens Edit routine.' : 'Load this blank week; Forge opens Edit routine.'}</li>
           <li>Choose a day, open its details, turn off Recovery day, name it, and set its duration.</li>
           <li>Add exercises with sets, reps, and rest. Repeat for your other training days, then save the week as a template.</li>
         </ol>

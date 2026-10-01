@@ -554,3 +554,98 @@ begin
 end;
 $$;
 reset role;
+
+
+-- Profile lifecycle: isolated owners, upload guard, transaction rollback, deletion.
+reset role;
+insert into auth.users(id,email) values
+ ('33333333-3333-4333-8333-333333333333','reset@example.test'),
+ ('44444444-4444-4444-8444-444444444444','delete@example.test');
+insert into public.workout_sessions(user_id,workout_day_id,status)
+select user_id,id,'completed' from public.workout_days where user_id in ('33333333-3333-4333-8333-333333333333','44444444-4444-4444-8444-444444444444') and day_of_week=1;
+insert into public.session_exercises(user_id,session_id,exercise_id,program_exercise_id,sort_order,target_sets,min_reps,max_reps,rest_seconds)
+select s.user_id,s.id,pe.exercise_id,pe.id,1,3,6,10,120 from public.workout_sessions s join public.program_exercises pe on pe.workout_day_id=s.workout_day_id and pe.sort_order=1 where s.user_id in ('33333333-3333-4333-8333-333333333333','44444444-4444-4444-8444-444444444444');
+insert into public.workout_sets(user_id,session_exercise_id,set_number,weight_kg,reps)
+select user_id,id,1,20,10 from public.session_exercises where user_id in ('33333333-3333-4333-8333-333333333333','44444444-4444-4444-8444-444444444444');
+insert into public.foods(user_id,name,serving_description,calories,protein_g,carbs_g,fat_g)
+select id,'Lifecycle food','1 serving',100,5,10,4 from auth.users where id in ('33333333-3333-4333-8333-333333333333','44444444-4444-4444-8444-444444444444');
+insert into public.food_entries(user_id,food_id,logged_date,meal_type,calories,protein_g,carbs_g,fat_g)
+select user_id,id,current_date,'lunch',100,5,10,4 from public.foods where name='Lifecycle food';
+insert into public.routine_templates(user_id,name,days)
+select u.id,'Private lifecycle template',t.days from auth.users u cross join public.routine_templates t where u.id in ('33333333-3333-4333-8333-333333333333','44444444-4444-4444-8444-444444444444') and t.id=(select id from public.routine_templates where user_id is null order by name limit 1);
+insert into storage.objects(bucket_id,name) values
+ ('progress-photos','33333333-3333-4333-8333-333333333333/orphan.jpg');
+set role authenticated;
+select set_config('forge.test_user_id','33333333-3333-4333-8333-333333333333',false);
+do $$ begin
+ if (select count(*) from public.forge_profile_media()) <> 1 then raise exception 'Media manifest lost an orphan upload or exposed another owner'; end if;
+ begin
+  perform public.forge_reset_profile('22222222-2222-4222-8222-222222222222','RESET');
+  raise exception 'Reset accepted another account identity';
+ exception when raise_exception then
+  if sqlerrm <> 'Your signed-in account changed. Refresh Settings' then raise; end if;
+ end;
+ begin
+  perform public.forge_reset_profile(auth.uid(),'RESET');
+  raise exception 'Reset accepted remaining upload';
+ exception when raise_exception then
+  if sqlerrm <> 'Remove all profile uploads before continuing' then raise; end if;
+ end;
+ begin
+  perform public.forge_reset_profile(auth.uid(),'DELETE',false);
+  raise exception 'Reset accepted wrong confirmation';
+ exception when raise_exception then
+  if sqlerrm <> 'Confirmation does not match' then raise; end if;
+ end;
+end $$;
+reset role;
+delete from storage.objects where name = '33333333-3333-4333-8333-333333333333/orphan.jpg';
+-- An injected failure when recreating the profile must roll back all deletions.
+create function public.forge_test_reset_failure() returns trigger language plpgsql as $$ begin
+ if new.user_id = '33333333-3333-4333-8333-333333333333' then raise exception 'Injected reset failure'; end if;
+ return new;
+end $$;
+create trigger forge_test_reset_failure before insert on public.profiles for each row execute function public.forge_test_reset_failure();
+set role authenticated;
+do $$ begin
+ begin perform public.forge_reset_profile(auth.uid(),'RESET');
+ exception when raise_exception then if sqlerrm <> 'Injected reset failure' then raise; end if; end;
+ if (select count(*) from public.workout_programs) <> 1 then raise exception 'Failed reset did not roll back'; end if;
+end $$;
+reset role;
+drop trigger forge_test_reset_failure on public.profiles;
+drop function public.forge_test_reset_failure();
+set role authenticated;
+select public.forge_reset_profile(auth.uid(),'RESET');
+do $$ declare t text; v_count integer; begin
+ foreach t in array array['goals','workout_programs','workout_days','exercises','program_exercises','workout_sessions','session_exercises','workout_sets','nutrition_targets','foods','food_entries','body_measurements','progress_photos','journal_entries','workout_reference_videos','exercise_reference_media'] loop
+  if exists(select 1 from information_schema.tables where table_name=t) then
+   execute format('select count(*) from public.%I',t) into strict v_count;
+   if v_count <> 0 then raise exception 'Reset left private records in %', t; end if;
+  end if;
+ end loop;
+ if (select count(*) from public.profiles where onboarding_completed_at is null and display_name is null and units='metric') <> 1 then raise exception 'Reset did not restart setup'; end if;
+ if (select count(*) from public.routine_templates where user_id is null) <> 3 then raise exception 'Reset removed shared templates'; end if;
+ if exists(select 1 from public.routine_templates where user_id=auth.uid()) then raise exception 'Reset kept a private template'; end if;
+end $$;
+select public.forge_ensure_user_setup();
+select set_config('forge.test_user_id','44444444-4444-4444-8444-444444444444',false);
+select public.forge_reset_profile(auth.uid(),'DELETE',true);
+do $$ begin
+ if public.forge_account_exists() then raise exception 'Deleted Auth account still exists'; end if;
+ begin
+  insert into storage.objects(bucket_id,name) values ('progress-photos',auth.uid()::text||'/stale-token.jpg');
+  raise exception 'Deleted token recreated an upload';
+ exception when insufficient_privilege then null; end;
+ begin perform public.forge_reset_profile(auth.uid(),'RESET');
+  raise exception 'Deleted token recreated profile';
+ exception when raise_exception then if sqlerrm <> 'This account no longer exists' then raise; end if; end;
+end $$;
+reset role;
+do $$ begin
+ if not exists(select 1 from auth.users where id='33333333-3333-4333-8333-333333333333') then raise exception 'Reset deleted login'; end if;
+ if exists(select 1 from auth.users where id='44444444-4444-4444-8444-444444444444') then raise exception 'Delete retained login'; end if;
+ if (select count(*) from auth.users) <> 3 then raise exception 'Lifecycle touched another owner'; end if;
+ if not exists(select 1 from public.workout_programs where user_id='22222222-2222-4222-8222-222222222222') then raise exception 'Lifecycle damaged another plan'; end if;
+ if has_function_privilege('anon','public.forge_reset_profile(uuid,text,boolean)','execute') then raise exception 'Anon can change profiles'; end if;
+end $$;

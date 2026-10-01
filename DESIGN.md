@@ -257,3 +257,13 @@ The refreshed `docs/screenshots/mobile.png` and `desktop.png` show the layout. T
 | A rejected Journal delete or Goals toggle/delete request could escape without an alert. | Each action reports its failure beside the page content and releases its busy state for retry. | A failed write must stay visible and recoverable. |
 | Action buttons remained usable while a write was in flight. | Edit, delete, toggle, and cancel controls are disabled while the request runs. | This prevents duplicate actions and conflicting edits on slow connections. |
 | A successful write followed by a failed list refresh looked like an ordinary failed write. | The error says the write succeeded but the list could not refresh. | The user can check the saved record before retrying, avoiding an accidental duplicate. |
+
+## Settings profile lifecycle review ? 2026-10-01
+
+| Before | After | Why |
+|---|---|---|
+| Account section only offered sign-out | Reset and Delete below export/sign-out | Make the requested actions findable in Settings |
+| No lifecycle scope or confirmation | Inline action explanation and exact RESET/DELETE field | Prevent confusing data reset with login removal |
+| No deletion recovery state | Busy controls, contextual errors, Cancel, partial-upload warning | Explain what happened and how to finish an interrupted action |
+
+Preserve the existing operating UI, native fields, 44px button targets, wrapping rows, and danger text token. No new decorative surface or motion.

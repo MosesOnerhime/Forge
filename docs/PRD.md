@@ -307,3 +307,7 @@ Each new account chooses its own calorie and macro targets during setup. Runo's 
 ## Build from scratch guidance (2026-09-30)
 
 When a user chooses the blank routine template, show actionable instructions for configuring a training day, adding exercises, and saving the finished week. After first-use setup, take that user to Edit routine with the guide visible. Keep recovery-day instructions near the day controls.
+
+## Profile lifecycle (2026-10-01)
+
+Settings supports permanent profile reset (retain login and restart onboarding) and profile/account deletion (remove login). Both erase owned training, nutrition, progress, journal, goals, private templates, preferences, and uploaded media. Shared templates remain. Require a typed confirmation, explain irreversible loss and unsynced-set loss, and remind users to export/download first. Failed operations show recovery instructions.

@@ -57,3 +57,9 @@ The migrations were executed in filename order against a disposable PostgreSQL 1
 - Treat zero added load for the named Dips and Upright Dips exercises as body weight. A positive load means external weight added and is labelled weighted dips. No database migration is needed.
 - Let video tiles play inline with native controls; use a separate Expand button for the full viewer. Pause the inline player before expansion to avoid two audio tracks. Keep signed private media URLs.
 - Move the rest timer to the authenticated app shell and persist its deadline under an owner-specific browser key. Preserve it across app navigation, background tabs, and reloads without adding a server table. Finish/cancel and Dismiss clear it.
+
+## Profile lifecycle decisions (2026-10-01)
+
+Reset means a fresh Forge profile using the existing login; deletion includes the Auth account, rather than only hiding the profile row. Both erase all owned app records/uploads and private routine templates. Retain shared starter templates. Use typed confirmation and an export reminder.
+
+Use a tightly scoped security-definer RPC to remove only `auth.uid()` records, with an expected-user assertion, a locked live Auth row, and no remaining app uploads. This avoids adding a server admin key. Supabase permits direct Auth-row deletion and cautions that owned Storage objects must be removed first ([user management](https://supabase.com/docs/guides/auth/managing-user-data)). Use the Storage API for deletion, because deleting Storage metadata in SQL does not remove the underlying file ([delete objects](https://supabase.com/docs/guides/storage/management/delete-objects)). Cleanup can partially complete before a failure; explain retry and irreversible file loss. A restrictive live-account Storage policy limits stale-token access after deletion.

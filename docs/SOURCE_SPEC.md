@@ -2172,3 +2172,7 @@ The user supplied a screenshot of tall, visible media tiles and asked that exerc
 ## User addendum: inline playback and timer continuity (2026-09-30)
 
 The user clarified that reference videos must play inside their compact tiles, with expansion optional. The user also asked that the rest countdown not disappear when moving to another tab. The implementation interpretation covers Forge navigation, browser-tab backgrounding, and reload restoration; the timer remains account-scoped in browser storage.
+
+### User addendum ? 2026-10-01
+
+?Add a reset profile option in settings. Also add a deletes profile option.? Implemented scope: reset erases Forge data/uploads while preserving login and restarting setup; delete also removes the Auth account. Both require exact typed confirmation.

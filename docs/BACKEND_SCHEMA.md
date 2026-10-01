@@ -569,3 +569,13 @@ Migration 005 changes `forge_seed_user` to leave `nutrition_targets` empty for n
 ## Set load interpretation (2026-09-30)
 
 No schema change is needed for body-weight dips. `workout_sets.weight_kg` already allows zero: for Dips and Upright Dips, zero records body weight and a positive value records added external load. Existing set rows keep their numeric value. The client labels zero as body weight and positive values as weighted dips. Weight and rep suggestions come from saved or pending sets in the current session, then `forge_previous_sets` for the first set.
+
+## Profile lifecycle migration (2026-10-01)
+
+`202610010001_profile_lifecycle.sql` adds three authenticated-only, security-definer functions with an empty search path:
+
+- `forge_profile_media()`: up to 1,000 Storage objects in the current user's folder across the three app buckets, including orphan uploads. Re-read after deletion until empty.
+- `forge_reset_profile(p_expected_user uuid, p_confirmation text, p_delete_account boolean default false)`: assert the expected identity matches `auth.uid()`; verify confirmation and a live Auth row; lock it; reject remaining uploads; delete private records in dependency order. Reset recreates a default profile with incomplete onboarding. Delete removes `auth.users`, allowing its FK cascades to remove Auth sessions/identities. No shared template is deleted.
+- `forge_account_exists()`: existence check used by a restrictive Storage policy to block stale JWTs from accessing or recreating files after Auth deletion.
+
+All record filters derive their owner from `auth.uid()`, never the identity assertion argument. Storage files are deleted using the Storage API, not SQL; file cleanup and the subsequent database transaction are not atomic together. Already issued JWTs can remain valid until expiry, but removed account FKs and the live-account Storage policy block recreating app data.

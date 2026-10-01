@@ -321,3 +321,7 @@ Apply migration 004 before deploying the picker. Verify three built-ins, owner-o
 ## Nutrition and Today correction (2026-09-29)
 
 Apply migration 005 before deploying the UI that removes the universal nutrition fallback. Verify a new account has no seeded nutrition row, then complete onboarding with each template choice and check that only account-entered targets appear in Today and Nutrition. Check the phone layout at 390px for both Start workout and Log food above the fixed navigation. The local database, rendered component, and layout checks cover part of this; a real new-account flow remains required.
+
+## Profile lifecycle addition (2026-10-01)
+
+Implemented Settings reset/delete confirmations, owner-folder media cleanup, atomic database reset or Auth deletion, stale-account Storage guard, and local-data cleanup. Component/helper tests cover confirmation, batching, cleanup failure/retry, foreign paths, deletion sign-out, and retained local data after a failed database change. PostgreSQL checks cover owner identity, remaining-file guard, injected rollback, historical FK chains, private/shared templates, reset/reinitialization, deletion, stale-token denial, and other-owner preservation. Production migration/deployment and read-only Settings browser QA are recorded in BUILD_STATUS.

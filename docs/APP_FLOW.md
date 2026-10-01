@@ -443,3 +443,7 @@ Selecting the blank routine template shows the steps to configure training days,
 ## Inline references and timer continuity (2026-09-30)
 
 During a workout or while browsing the weekly plan, play a reference video directly inside its tile. Choose Expand only when a larger player is useful. After logging a set, the rest timer appears above the app navigation; moving to another Forge page keeps it on screen. Switching browser tabs or reloading preserves the deadline and recalculates the remaining time. Pause, resume, reset, and dismiss work from any app page.
+
+## Reset and delete (2026-10-01)
+
+Settings ? Account ? Reset profile or Delete profile ? inline explanation ? type RESET or DELETE ? permanent action. Cancel closes confirmation without a request. Remove private uploads, then reset/delete owned records. Reset returns to onboarding with the same login; delete removes Auth and returns to login. Failure keeps the confirmation open for retry; some files may already be removed.

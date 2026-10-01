@@ -320,3 +320,7 @@ Migration `202609290004_routine_templates.sql` adds RLS-protected `routine_templ
 ## Nutrition seed correction (2026-09-29)
 
 Migration `202609290005_nutrition_target_choice.sql` replaces `forge_seed_user` so signup creates the profile and provisional workout fallback without inserting Runo's nutrition values into every account. Onboarding writes owner-chosen targets after the routine choice. Existing target rows are preserved. Client summaries handle a missing target as an unset state and avoid division by zero.
+
+## Profile lifecycle (2026-10-01)
+
+Settings calls the lifecycle helper after exact typed confirmation. It validates the Auth user, removes owner-folder uploads with the Storage API in bounded batches, then calls the owner-authorized reset/delete RPC. The identity assertion rejects account switches. On success clear local workout snapshot, pending sets, and owner timer; full navigation discards loaded state. Account deletion also signs out locally. No admin secret enters the browser. SQL removal of Storage metadata is prohibited. An interrupted cleanup can partially remove files; show this and permit retry.

@@ -560,7 +560,7 @@ The exact sets, rep ranges and rest times should be seeded from the existing wor
 
 ## Routine templates (2026-09-29)
 
-`routine_templates(id, user_id nullable, name, description, days jsonb, created_at)` stores built-in rows with null owner and owner-private saved snapshots. RLS allows authenticated reads of built-ins and own rows; only owners can delete their rows. Inserts occur through `forge_save_routine_template`, not direct client writes. `workout_programs.source_template_id` records the selected source and becomes null if a private saved template is removed. Applying a template creates new program/day/plan rows while retaining archived programs for session history. Reference-media objects are not copied into a template.
+`routine_templates(id, user_id nullable, name, description, days jsonb, created_at)` stores built-in rows with null owner and owner-private saved snapshots. RLS allows authenticated reads of built-ins and own rows; only owners can delete their rows. Inserts occur through `forge_save_routine_template`, not direct client writes. `workout_programs.source_template_id` records the selected source and becomes null if a private saved template is removed. Applying a template creates new program/day/plan rows while retaining archived programs for session history. Migration 202610010002 adds template reference metadata and creator-controlled sharing. Storage files are copied into each new owner's private routine on load.
 
 ## Nutrition target seed correction (2026-09-29)
 
@@ -579,3 +579,11 @@ No schema change is needed for body-weight dips. `workout_sets.weight_kg` alread
 - `forge_account_exists()`: existence check used by a restrictive Storage policy to block stale JWTs from accessing or recreating files after Auth deletion.
 
 All record filters derive their owner from `auth.uid()`, never the identity assertion argument. Storage files are deleted using the Storage API, not SQL; file cleanup and the subsequent database transaction are not atomic together. Already issued JWTs can remain valid until expiry, but removed account FKs and the live-account Storage policy block recreating app data.
+
+## Template reference sharing (2026-10-01)
+
+Migration `202610010002_template_references.sql` adds `routine_templates.is_shared`, `publisher_id`, and `source_program_id`, with a creator/source index. Built-ins retain null `user_id`; an assigned publisher controls Runo's starter. Ordinary saved templates retain their creator in `user_id`. Read RLS includes shared rows; direct template updates remain revoked, and delete stays owner-only.
+
+`template_reference_media` links a template to an owner source exercise-media row or workout-video row, along with exercise name/day, source bucket/path, filename, MIME, and size. Source FK cascades remove links on reference deletion. Authenticated users can read only published links or their own links. No direct link mutation is granted. Triggers rebuild matching links after media insert/update/delete. Save snapshots the week and source program; owner Update refreshes the week/source. A one-time guarded bootstrap assigns the existing Runo starter only when the historical `Runo's Current Routine` owner is unique.
+
+Authenticated RPCs: `forge_set_template_sharing(uuid,boolean)` and `forge_update_routine_template(uuid)` require the creator; `forge_template_import_targets(uuid,uuid)` maps a visible template's references to the caller's destination program. Existing save/apply RPCs include media linkage and shared-template selection. Internal sync/trigger functions are revoked from client roles. `forge_template_file_visible(text,text)` permits SELECT on only explicitly published source files, with no shared write/delete grant. All buckets stay private. Files are copied through Storage API under the importer ID, not through SQL. Exports include visible template-reference metadata.

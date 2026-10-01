@@ -649,3 +649,71 @@ do $$ begin
  if not exists(select 1 from public.workout_programs where user_id='22222222-2222-4222-8222-222222222222') then raise exception 'Lifecycle damaged another plan'; end if;
  if has_function_privilege('anon','public.forge_reset_profile(uuid,text,boolean)','execute') then raise exception 'Anon can change profiles'; end if;
 end $$;
+
+
+-- Shared templates: explicit publication, auto reference sync, immutable originals.
+set role authenticated;
+select set_config('forge.test_user_id','11111111-1111-4111-8111-111111111111',false);
+select set_config('forge.test_shared_template',public.forge_save_routine_template('Shared test fixture')::text,false);
+do $$ begin
+ if not exists(select 1 from public.template_reference_media where template_id=current_setting('forge.test_shared_template')::uuid) then raise exception 'Saved template lost references'; end if;
+end $$;
+select set_config('forge.test_user_id','22222222-2222-4222-8222-222222222222',false);
+do $$ begin
+ if exists(select 1 from public.routine_templates where id=current_setting('forge.test_shared_template')::uuid) then raise exception 'Private template exposed'; end if;
+ if exists(select 1 from public.template_reference_media where template_id=current_setting('forge.test_shared_template')::uuid) then raise exception 'Private reference metadata exposed'; end if;
+ begin perform public.forge_apply_routine_template(current_setting('forge.test_shared_template')::uuid);
+  raise exception 'Loaded another private template';
+ exception when raise_exception then if sqlerrm <> 'Template not found' then raise; end if; end;
+end $$;
+select set_config('forge.test_user_id','11111111-1111-4111-8111-111111111111',false);
+select public.forge_set_template_sharing(current_setting('forge.test_shared_template')::uuid,true);
+-- A newly uploaded reference is immediately included without resaving the week.
+insert into storage.objects(bucket_id,name)
+select 'exercise-reference-media',auth.uid()::text||'/'||id::text||'/shared-new.mp4' from public.exercises where user_id=auth.uid() and name='Weighted Pull-ups';
+insert into public.exercise_reference_media(user_id,exercise_id,storage_path,original_name,mime_type,file_size_bytes)
+select auth.uid(),id,auth.uid()::text||'/'||id::text||'/shared-new.mp4','shared-new.mp4','video/mp4',2048 from public.exercises where user_id=auth.uid() and name='Weighted Pull-ups';
+select set_config('forge.test_user_id','22222222-2222-4222-8222-222222222222',false);
+update public.workout_sessions set status='cancelled' where user_id=auth.uid() and status='active';
+do $$ declare v_program uuid; v_count integer; begin
+ if not exists(select 1 from public.routine_templates where id=current_setting('forge.test_shared_template')::uuid) then raise exception 'Shared template hidden'; end if;
+ if not exists(select 1 from public.template_reference_media where template_id=current_setting('forge.test_shared_template')::uuid and original_name='shared-new.mp4') then raise exception 'Auto synced video hidden'; end if;
+ if not exists(select 1 from storage.objects where name like '%/shared-new.mp4') then raise exception 'Shared reference cannot be read/copied'; end if;
+ if exists(select 1 from public.exercise_reference_media where original_name='shared-new.mp4') then raise exception 'Publication exposed private source exercise rows'; end if;
+ begin perform public.forge_update_routine_template(current_setting('forge.test_shared_template')::uuid);
+  raise exception 'Another owner updated original';
+ exception when raise_exception then if sqlerrm <> 'Only the template creator can update it' then raise; end if; end;
+ begin perform public.forge_set_template_sharing(current_setting('forge.test_shared_template')::uuid,false);
+  raise exception 'Another owner changed sharing';
+ exception when raise_exception then if sqlerrm <> 'Only the template creator can change sharing' then raise; end if; end;
+ delete from public.routine_templates where id=current_setting('forge.test_shared_template')::uuid;
+ get diagnostics v_count=row_count;
+ if v_count<>0 then raise exception 'Another owner deleted original'; end if;
+ delete from storage.objects where name like '%/shared-new.mp4';
+ get diagnostics v_count=row_count;
+ if v_count<>0 then raise exception 'Another owner removed shared source file'; end if;
+ v_program:=public.forge_apply_routine_template(current_setting('forge.test_shared_template')::uuid,true);
+ if not exists(select 1 from public.forge_template_import_targets(current_setting('forge.test_shared_template')::uuid,v_program) where original_name='shared-new.mp4' and exercise_id is not null and not already_owned) then raise exception 'Template import did not map video to new owner exercise'; end if;
+ if public.forge_apply_routine_template(current_setting('forge.test_shared_template')::uuid,true)<>v_program then raise exception 'Import retry created another routine'; end if;
+ perform set_config('forge.test_import_program',v_program::text,false);
+ perform set_config('forge.test_fork',public.forge_save_routine_template('My independent copy')::text,false);
+ if not exists(select 1 from public.routine_templates where id=current_setting('forge.test_fork')::uuid and user_id=auth.uid() and not is_shared) then raise exception 'Fork not owned/private'; end if;
+end $$;
+select set_config('forge.test_user_id','11111111-1111-4111-8111-111111111111',false);
+do $$ begin
+ begin perform public.forge_template_import_targets(current_setting('forge.test_shared_template')::uuid,current_setting('forge.test_import_program')::uuid);
+  raise exception 'Importer accepted foreign destination routine';
+ exception when raise_exception then if sqlerrm<>'Template or routine is not available to this account' then raise; end if; end;
+end $$;
+select public.forge_update_routine_template(current_setting('forge.test_shared_template')::uuid);
+select public.forge_set_template_sharing(current_setting('forge.test_shared_template')::uuid,false);
+select set_config('forge.test_user_id','22222222-2222-4222-8222-222222222222',false);
+do $$ begin
+ if exists(select 1 from public.template_reference_media where template_id=current_setting('forge.test_shared_template')::uuid) then raise exception 'Unpublished media metadata still visible'; end if;
+ if exists(select 1 from storage.objects where name like '%/shared-new.mp4') then raise exception 'Unpublished file still readable'; end if;
+ if not exists(select 1 from public.workout_programs where id=current_setting('forge.test_import_program')::uuid) then raise exception 'Unpublish removed loaded routine'; end if;
+end $$;
+reset role;
+do $$ begin
+ if has_function_privilege('anon','public.forge_template_file_visible(text,text)','execute') or has_function_privilege('authenticated','public.forge_sync_template_media(uuid)','execute') then raise exception 'Template function privileges too broad'; end if;
+end $$;

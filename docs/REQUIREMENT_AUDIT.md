@@ -45,3 +45,7 @@ The user enabled Edge extension file access later on 2026-09-30. The same MP4 wa
 ## Profile lifecycle request (2026-10-01)
 
 Reset profile and Delete profile controls are implemented with explicit scopes and typed confirmation. Local app checks and isolated lifecycle tests passed. The database harness tests reset, rollback, deletion, and owner isolation; it is not a live Supabase Auth/Storage deletion test. Do not erase the real user's profile to verify this feature. See BUILD_STATUS for deployment and browser evidence.
+
+## Shared template reference request (2026-10-01)
+
+Code now includes matching uploads in saved/shared templates, copies exercise/day media during onboarding and template loading, protects the original with creator authorization, and lets users save private forks. Private files outside published links remain inaccessible. Isolated transfer/UI and PostgreSQL checks cover these boundaries; deployment and live browser evidence are recorded in BUILD_STATUS. Real second-account file transfer remains a separate verification boundary.

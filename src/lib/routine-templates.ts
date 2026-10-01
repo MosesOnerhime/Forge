@@ -10,6 +10,8 @@ export type RoutineTemplateDay = {
 export type RoutineTemplate = {
   id: string
   user_id: string | null
+  publisher_id?: string | null
+  is_shared?: boolean
   name: string
   description: string | null
   days: RoutineTemplateDay[]

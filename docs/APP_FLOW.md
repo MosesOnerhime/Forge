@@ -447,3 +447,9 @@ During a workout or while browsing the weekly plan, play a reference video direc
 ## Reset and delete (2026-10-01)
 
 Settings ? Account ? Reset profile or Delete profile ? inline explanation ? type RESET or DELETE ? permanent action. Cancel closes confirmation without a request. Remove private uploads, then reset/delete owned records. Reset returns to onboarding with the same login; delete removes Auth and returns to login. Failure keeps the confirmation open for retry; some files may already be removed.
+
+## Shared templates and copies (2026-10-01)
+
+Edit routine -> Templates -> save current week (references included) -> optionally enable Share with all signed-in users. Creator controls appear only for the original owner/publisher: Update from current routine, Share/Stop sharing, and Delete for privately owned rows. New references sync automatically; schedule edits require Update.
+
+A new user selects a shared template in onboarding, or an existing user chooses Load selected routine. The app applies the schedule, then copies reference files into that user's folders. A partial transfer displays a retry instruction and does not pretend all references were saved. Loading the same template again reuses the active plan and skips completed transfers. The user can save the loaded week under a new name; it belongs to them and defaults to private.

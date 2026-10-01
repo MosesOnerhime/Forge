@@ -4,7 +4,7 @@ import { DownloadSimple } from '@phosphor-icons/react'
 import { supabase } from '@/lib/supabase'
 import { localDate } from '@/lib/utils'
 import { errorMessage } from '@/lib/data'
-const tables = ['profiles','goals','workout_programs','workout_days','routine_templates','workout_reference_videos','exercises','exercise_reference_media','program_exercises','workout_sessions','session_exercises','workout_sets','nutrition_targets','foods','food_entries','body_measurements','progress_photos','journal_entries'] as const
+const tables = ['profiles','goals','workout_programs','workout_days','routine_templates','template_reference_media','workout_reference_videos','exercises','exercise_reference_media','program_exercises','workout_sessions','session_exercises','workout_sets','nutrition_targets','foods','food_entries','body_measurements','progress_photos','journal_entries'] as const
 export function ExportData() {
   const [busy,setBusy]=useState(false),[error,setError]=useState('')
   async function download() {

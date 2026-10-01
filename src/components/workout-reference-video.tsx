@@ -176,7 +176,7 @@ export function WorkoutReferenceVideo({ dayId, dayName, userId, manage = false }
       expandLabel={`Expand workout reference ${video.original_name}`} onExpand={() => void play()}
       onRemove={manage ? () => void remove() : undefined} disabled={busy} /></div> : <p className="muted small">No video saved for this workout yet.</p>}
     {manage && uploadOpen && <form onSubmit={upload} className="stack" style={{ marginTop: 18 }}>
-      <div><label htmlFor={`workout-video-${dayId}`}>{video ? 'Replace video' : 'Upload video'}</label><input ref={fileInput} id={`workout-video-${dayId}`} type="file" accept="video/mp4,video/webm" disabled={busy || loading} onChange={event => setFile(event.target.files?.[0] ?? null)} /><p className="muted small" style={{ margin: '8px 0 0' }}>MP4 or WebM, up to {MAX_WORKOUT_VIDEO_BYTES / (1024 * 1024)} MB. Private to your account.</p></div>
+      <div><label htmlFor={`workout-video-${dayId}`}>{video ? 'Replace video' : 'Upload video'}</label><input ref={fileInput} id={`workout-video-${dayId}`} type="file" accept="video/mp4,video/webm" disabled={busy || loading} onChange={event => setFile(event.target.files?.[0] ?? null)} /><p className="muted small" style={{ margin: '8px 0 0' }}>MP4 or WebM, up to {MAX_WORKOUT_VIDEO_BYTES / (1024 * 1024)} MB. Private unless included in your shared routine template.</p></div>
       {busy && progress > 0 && <div role="status" className="muted small">Uploading {progress}%</div>}
       <button className="btn primary" type="submit" disabled={busy || loading || !file} style={{ justifySelf: 'start' }}><UploadSimple size={17} /> {busy ? 'Saving video…' : video ? 'Replace reference' : 'Save reference'}</button>
     </form>}

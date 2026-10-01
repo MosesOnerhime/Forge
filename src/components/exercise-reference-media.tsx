@@ -165,7 +165,7 @@ export function ExerciseReferenceMedia({ exerciseId, exerciseName, userId, manag
         </article>
       })}</div> : manage ? <p className="muted small">No references yet. Add an image or video to this exercise.</p> : null}
       {manage && addOpen && !loading && <form className="stack reference-upload" onSubmit={upload}>
-        <div><label htmlFor={fileInputId}>Add an image or video</label><input key={fileKey} id={fileInputId} type="file" accept="image/jpeg,image/png,image/webp,video/mp4,video/webm" disabled={busy} onChange={event => setFile(event.target.files?.[0] ?? null)} /><p className="muted small" style={{ margin: '8px 0 0' }}>JPG, PNG, or WebP up to 10 MB; MP4 or WebM up to 50 MB. Private to your account.</p></div>
+        <div><label htmlFor={fileInputId}>Add an image or video</label><input key={fileKey} id={fileInputId} type="file" accept="image/jpeg,image/png,image/webp,video/mp4,video/webm" disabled={busy} onChange={event => setFile(event.target.files?.[0] ?? null)} /><p className="muted small" style={{ margin: '8px 0 0' }}>JPG, PNG, or WebP up to 10 MB; MP4 or WebM up to 50 MB. Private unless you share a saved template that uses this exercise. References sync to those templates automatically.</p></div>
         {busy && progress > 0 && <div className="muted small" role="status">Uploading {progress}%</div>}
         <button className="btn primary small" type="submit" disabled={busy || !file} style={{ justifySelf: 'start' }}><UploadSimple size={16} />{busy ? 'Saving…' : 'Save reference'}</button>
       </form>}

@@ -267,3 +267,14 @@ The refreshed `docs/screenshots/mobile.png` and `desktop.png` show the layout. T
 | No deletion recovery state | Busy controls, contextual errors, Cancel, partial-upload warning | Explain what happened and how to finish an interrupted action |
 
 Preserve the existing operating UI, native fields, 44px button targets, wrapping rows, and danger text token. No new decorative surface or motion.
+
+## Shared template controls - 2026-10-01
+
+| Before | After | Why |
+|---|---|---|
+| Templates omitted references | Loading includes private file copies; save includes references | Make the chosen routine usable without rebuilding its demos |
+| Every owned-looking row showed Delete | Creator-only Update, Sharing, and Delete | Keep another user's original read-only |
+| No sharing visibility | Shared/private/starter label and explicit save checkbox | Make reference publication intentional |
+| Transfer success was assumed | Copy failure names the partial outcome and retry | Avoid presenting a loaded week as a completed media transfer |
+
+Keep the existing operating UI and wrapping controls at mobile width. Upload hints explain when saved-template references become shared.

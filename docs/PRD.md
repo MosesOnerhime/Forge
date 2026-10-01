@@ -299,7 +299,7 @@ When logging a new set, prefill weight and reps from the latest completed set fo
 
 ## Routine templates addendum (2026-09-29)
 
-First-use setup offers Runo's Workout Routine, Mom's Starter Routine, and a blank week. Selection loads seven days and their exercise prescriptions. A signed-in user can edit day names, training/recovery state, durations, exercises, and prescriptions; save the current week as a private template; and load a template later. Switching archives the previous program so past sessions still resolve to their original days. Active sessions block a switch. Exercise reference media remains owner-private and attached to the owner's exercise records; scheduled-day videos stay with the archived days. Runo's initial prescriptions remain provisional until the missing original document is supplied.
+First-use setup offers Runo's Workout Routine, Mom's Starter Routine, and a blank week. Selection loads seven days and their exercise prescriptions. A signed-in user can edit day names, training/recovery state, durations, exercises, and prescriptions; save the current week as a private template; and load a template later. Switching archives the previous program so past sessions still resolve to their original days. Active sessions block a switch. Shared templates include selected exercise and scheduled-day references. Loading copies those files into the new owner's account, while the original template remains creator-controlled. Runo's initial prescriptions remain provisional until the missing original document is supplied.
 
 ## Personal nutrition targets (2026-09-29)
 
@@ -311,3 +311,7 @@ When a user chooses the blank routine template, show actionable instructions for
 ## Profile lifecycle (2026-10-01)
 
 Settings supports permanent profile reset (retain login and restart onboarding) and profile/account deletion (remove login). Both erase owned training, nutrition, progress, journal, goals, private templates, preferences, and uploaded media. Shared templates remain. Require a typed confirmation, explain irreversible loss and unsynced-set loss, and remind users to export/download first. Failed operations show recovery instructions.
+
+## Shared template references (2026-10-01)
+
+Reference images, exercise videos, and workout-day videos are included in saved templates. New matching uploads sync to that creator's saved templates without another Save action. The creator may publish the template to authenticated users and update its schedule from the active routine. Other users can load it with private media copies, edit their local plan, and save their own template. They cannot update/delete the original or change its sharing. Private templates stay private unless published. Removal/unpublication affects future imports, not copies already transferred.

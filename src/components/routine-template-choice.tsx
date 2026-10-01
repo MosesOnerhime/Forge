@@ -20,6 +20,7 @@ export function RoutineTemplateChoice({ templates, selected, onSelect, disabled 
           disabled={disabled} onChange={() => onSelect(template.id)} style={{ width: 20, flex: 'none', marginTop: 4 }} />
         <span className="stack" style={{ gap: 7 }}>
           <strong>{template.name}</strong>
+          <span className="muted small">{template.is_shared ? 'Shared template · original controlled by its creator' : template.user_id ? 'Private saved template' : 'Starter template'}</span>
           <span id={`template-description-${template.id}`} className="muted small">{template.description}</span>
           <span id={`template-summary-${template.id}`} className="muted small">{templateSummary(template.days)}</span>
         </span>

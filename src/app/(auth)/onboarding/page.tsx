@@ -9,6 +9,7 @@ import { localDate } from '@/lib/utils'
 import { storageValue, type Units } from '@/lib/units'
 import { RoutineTemplateChoice } from '@/components/routine-template-choice'
 import { isScratchTemplate, type RoutineTemplate } from '@/lib/routine-templates'
+import { loadRoutineTemplate } from '@/lib/template-references'
 
 type TrainingDay = { day_of_week: number; name: string; is_rest_day: boolean }
 
@@ -54,7 +55,7 @@ function SetupForm() {
           client.from('profiles').select('display_name,units,onboarding_completed_at').eq('user_id', user.id).single(),
           client.from('goals').select('id,name').eq('active', true).order('created_at', { ascending: false }).limit(1).maybeSingle(),
           client.from('nutrition_targets').select('calories,protein_g,carbs_g,fat_g').lte('effective_from', localDate()).order('effective_from', { ascending: false }).limit(1).maybeSingle(),
-          client.from('routine_templates').select('id,user_id,name,description,days,created_at').order('created_at'),
+          client.from('routine_templates').select('id,user_id,publisher_id,is_shared,name,description,days,created_at').order('created_at'),
           client.from('workout_programs').select('source_template_id').eq('active', true).maybeSingle(),
         ])
         if (profile.error) throw profile.error
@@ -148,8 +149,7 @@ function SetupForm() {
         const input = document.getElementById('starting-photo') as HTMLInputElement | null
         if (input) input.value = ''
       }
-      const { error: routineError } = await client.rpc('forge_apply_routine_template', { p_template_id: selectedTemplate, p_reuse_if_active: true })
-      if (routineError) throw routineError
+      await loadRoutineTemplate(selectedTemplate, user.id)
       const { error: completeError } = await client.from('profiles').update({ onboarding_completed_at: new Date().toISOString() }).eq('user_id', user.id)
       if (completeError) throw completeError
       router.replace(templates.some(template => template.id === selectedTemplate && isScratchTemplate(template)) ? '/workouts/routine' : '/today')

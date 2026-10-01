@@ -8,6 +8,7 @@ import { RoutineTemplateChoice } from '@/components/routine-template-choice'
 import { errorMessage } from '@/lib/data'
 import { supabase } from '@/lib/supabase'
 import type { RoutineTemplate } from '@/lib/routine-templates'
+import { loadRoutineTemplate } from '@/lib/template-references'
 
 export default function RoutineTemplatesPage() {
   const { user } = useAuth()
@@ -16,6 +17,7 @@ export default function RoutineTemplatesPage() {
   const [selected, setSelected] = useState('')
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
+  const [share, setShare] = useState(false)
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
@@ -25,7 +27,7 @@ export default function RoutineTemplatesPage() {
     setLoading(true)
     try {
       const { data, error: queryError } = await supabase().from('routine_templates')
-        .select('id,user_id,name,description,days,created_at').order('created_at')
+        .select('id,user_id,publisher_id,is_shared,name,description,days,created_at').order('created_at')
       if (queryError) throw queryError
       const available = (data ?? []) as RoutineTemplate[]
       setTemplates(available)
@@ -47,8 +49,15 @@ export default function RoutineTemplatesPage() {
       if (saveError) throw saveError
       await load()
       setSelected(data as string)
+      if (share) {
+        const shared = await supabase().rpc('forge_set_template_sharing', { p_template_id: data, p_shared: true })
+        if (shared.error) throw new Error(`Your template was saved privately, but sharing failed: ${shared.error.message}. Select it to retry sharing.`)
+      }
+      await load()
+      setSelected(data as string)
       setName(''); setDescription('')
-      setMessage('Your current routine was saved as a private template.')
+      setMessage(share ? 'Template shared with all signed-in users, including its references. Only you can change the original.' : 'Your routine and references were saved as a private template.')
+      setShare(false)
     } catch (caught) { setError(errorMessage(caught)) }
     finally { setBusy(false) }
   }
@@ -58,8 +67,8 @@ export default function RoutineTemplatesPage() {
     if (!template || busy || !window.confirm(`Load ${template.name} as your active routine? Your past workout logs will stay available.`)) return
     setBusy(true); setError(''); setMessage('')
     try {
-      const { error: applyError } = await supabase().rpc('forge_apply_routine_template', { p_template_id: template.id })
-      if (applyError) throw applyError
+      if (!user) throw new Error('Sign in to load a routine.')
+      await loadRoutineTemplate(template.id, user.id)
       router.push('/workouts/routine')
       router.refresh()
     } catch (caught) { setError(errorMessage(caught)); setBusy(false) }
@@ -67,7 +76,7 @@ export default function RoutineTemplatesPage() {
 
   async function remove() {
     const template = templates.find(item => item.id === selected)
-    if (!template?.user_id || busy || !window.confirm(`Delete your saved template “${template.name}”? Your active routine and workout logs will remain.`)) return
+    if (!template || template.user_id !== user?.id || busy || !window.confirm(`Delete your saved template “${template.name}”? Your active routine and workout logs will remain.`)) return
     setBusy(true); setError(''); setMessage('')
     try {
       const { error: deleteError } = await supabase().from('routine_templates').delete().eq('id', template.id)
@@ -75,6 +84,22 @@ export default function RoutineTemplatesPage() {
       setSelected('')
       await load()
       setMessage('Saved template deleted.')
+    } catch (caught) { setError(errorMessage(caught)) }
+    finally { setBusy(false) }
+  }
+
+  const chosen = templates.find(item => item.id === selected)
+  const ownsChosen = !!user && !!chosen && (chosen.user_id === user.id || chosen.publisher_id === user.id)
+  async function changeSelected(update: boolean) {
+    if (!chosen || !ownsChosen || busy) return
+    if (update && !window.confirm(`Update ${chosen.name} from your current routine? People who load it next will get the updated week and references. Existing copies stay unchanged.`)) return
+    setBusy(true); setError(''); setMessage('')
+    try {
+      const result = await supabase().rpc(update ? 'forge_update_routine_template' : 'forge_set_template_sharing', update
+        ? { p_template_id: chosen.id } : { p_template_id: chosen.id, p_shared: !chosen.is_shared })
+      if (result.error) throw result.error
+      await load()
+      setMessage(update ? 'Template updated. Reference uploads for this saved routine sync automatically.' : chosen.is_shared ? 'Reference sharing stopped. Existing downloaded copies stay with their owners.' : 'Template and references shared with signed-in users. Only you can update the original.')
     } catch (caught) { setError(errorMessage(caught)) }
     finally { setBusy(false) }
   }
@@ -89,16 +114,19 @@ export default function RoutineTemplatesPage() {
       {loading ? <p className="muted">Loading templates…</p> : templates.length === 0 ? <p className="muted">No templates found. Apply the latest database migration.</p> : <RoutineTemplateChoice templates={templates} selected={selected} onSelect={setSelected} disabled={busy} />}
       <div className="row wrap" style={{ justifyContent: 'flex-start' }}>
         <button className="btn primary" type="button" disabled={busy || !selected} onClick={() => void apply()}>{busy ? 'Working…' : 'Load selected routine'}</button>
-        {templates.find(item => item.id === selected)?.user_id && <button className="btn ghost danger" type="button" disabled={busy} onClick={() => void remove()}>Delete saved template</button>}
+        {ownsChosen && <button className="btn" type="button" disabled={busy} onClick={() => void changeSelected(true)}>Update from current routine</button>}
+        {ownsChosen && <button className="btn" type="button" disabled={busy} onClick={() => void changeSelected(false)}>{chosen?.is_shared ? 'Stop sharing references' : 'Share template and references'}</button>}
+        {chosen?.user_id === user?.id && <button className="btn ghost danger" type="button" disabled={busy} onClick={() => void remove()}>Delete saved template</button>}
       </div>
-      <p className="muted small" style={{ margin: 0 }}>Loading changes your upcoming schedule. Previous workout sessions stay in History. Private reference media remains attached to your exercises; day videos stay with the old schedule.</p>
+      <p className="muted small" style={{ margin: 0 }}>Loading copies the schedule and references into your account. Edit your copy freely; the creator’s template stays unchanged. Previous sessions stay in History. Save your loaded routine below to keep your own template.</p>
     </section>
     <section className="card stack" style={{ marginTop: 20 }}>
       <h2>Save your current routine</h2>
-      <p className="muted" style={{ margin: 0 }}>Edit days and exercises first, then save the full week for reuse.</p>
+      <p className="muted" style={{ margin: 0 }}>Save the full week with its images and videos. New references for those exercises sync to your saved templates automatically.</p>
       <form className="stack" onSubmit={save}>
         <div><label htmlFor="template-name">Template name</label><input id="template-name" maxLength={150} required value={name} onChange={event => setName(event.target.value)} placeholder="My workout routine" /></div>
         <div><label htmlFor="template-description">Description <span className="muted">(optional)</span></label><textarea id="template-description" maxLength={1000} value={description} onChange={event => setDescription(event.target.value)} placeholder="Who or what is this plan for?" /></div>
+        <div className="row" style={{ justifyContent: 'flex-start' }}><input id="template-share" type="checkbox" checked={share} disabled={busy} onChange={event => setShare(event.target.checked)} /><label htmlFor="template-share" style={{ margin: 0 }}>Share this template and its references with all signed-in users</label></div>
         <button className="btn" disabled={busy || !name.trim()} style={{ justifySelf: 'start' }}>Save as template</button>
       </form>
     </section>

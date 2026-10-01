@@ -2176,3 +2176,7 @@ The user clarified that reference videos must play inside their compact tiles, w
 ### User addendum ? 2026-10-01
 
 ?Add a reset profile option in settings. Also add a deletes profile option.? Implemented scope: reset erases Forge data/uploads while preserving login and restarting setup; delete also removes the Auth account. Both require exact typed confirmation.
+
+### User addendum - 2026-10-01: shared template references
+
+Reference uploads to the user's routine must be saved with their template. Any signed-in user choosing it should get the reference videos, without permission to edit the original template, and may save their own template copy. Images and workout-day reference videos follow the same copy behavior.

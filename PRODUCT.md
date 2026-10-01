@@ -36,8 +36,12 @@ During set logging, weight and reps start with the latest completed set for that
 
 ## Routine templates
 
-During setup, choose Runo's Workout Routine, Mom's Starter Routine, or a blank week. Edit day names and training/recovery status, then add and tune exercises. From Edit routine, open Templates to save your current week privately or load a saved or built-in week. A switch preserves prior workout history. Templates copy the schedule and prescriptions, while media remains private to its owner.
+During setup, choose Runo's Workout Routine, Mom's Starter Routine, or a blank week. Edit day names and training/recovery status, then add and tune exercises. From Edit routine, open Templates to save your current week privately or load a saved or built-in week. A switch preserves prior workout history. Templates include the schedule, prescriptions, and references. Creators can share templates with signed-in users; loading makes independent private media copies.
 
 ## Profile ownership and lifecycle
 
 Settings lets users reset their Forge records/uploads and restart onboarding with the same login, or delete their profile and Auth account. Both are permanent, require typed confirmation, and preserve shared starter templates. Export/download first.
+
+## Shared routine references
+
+Creators can publish saved routines and their attached references to signed-in users. New matching uploads sync to saved templates. Loading creates an editable personal routine with independent private files; saving makes the user's own template. Only the original creator controls its schedule, sharing, and deletion. Runo's supplied routine has its historical creator assigned as publisher.

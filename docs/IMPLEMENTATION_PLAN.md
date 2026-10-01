@@ -325,3 +325,7 @@ Apply migration 005 before deploying the UI that removes the universal nutrition
 ## Profile lifecycle addition (2026-10-01)
 
 Implemented Settings reset/delete confirmations, owner-folder media cleanup, atomic database reset or Auth deletion, stale-account Storage guard, and local-data cleanup. Component/helper tests cover confirmation, batching, cleanup failure/retry, foreign paths, deletion sign-out, and retained local data after a failed database change. PostgreSQL checks cover owner identity, remaining-file guard, injected rollback, historical FK chains, private/shared templates, reset/reinitialization, deletion, stale-token denial, and other-owner preservation. Production migration/deployment and read-only Settings browser QA are recorded in BUILD_STATUS.
+
+## Shared template media addition (2026-10-01)
+
+Implemented creator sharing/update controls, template-media metadata, upload-driven synchronization, authenticated source-file read permission, and independent private reference copies during onboarding/template load. Existing Runo references are bootstrapped from the historical creator. Added transfer tests for images/videos/day media, pagination, retry, versioned replacement, and owner-folder writes; UI tests cover creator-only controls. PostgreSQL tests cover publication privacy, automatic links, original protection, destination mapping, retry, fork ownership, unpublication, and function grants. See BUILD_STATUS for current verification and production proof.

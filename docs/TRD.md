@@ -315,7 +315,7 @@ The rest timer provider lives in the authenticated app shell rather than the ses
 
 ## Routine templates (2026-09-29)
 
-Migration `202609290004_routine_templates.sql` adds RLS-protected `routine_templates` with nullable owner for read-only built-ins, JSONB seven-day snapshots, and a source-template reference on active programs. `forge_save_routine_template` snapshots the caller's active week. `forge_apply_routine_template` checks authentication and ownership, serializes a switch per profile, rejects active sessions, deactivates the previous program, and creates a complete new program inside one transaction. The old program and days remain for historical foreign keys. Onboarding asks the apply RPC to reuse an already selected active template during retry. Built-ins contain no private media or personal body metrics.
+Migration `202609290004_routine_templates.sql` adds RLS-protected `routine_templates` with nullable owner for read-only built-ins, JSONB seven-day snapshots, and a source-template reference on active programs. `forge_save_routine_template` snapshots the caller's active week. `forge_apply_routine_template` checks authentication and ownership, serializes a switch per profile, rejects active sessions, deactivates the previous program, and creates a complete new program inside one transaction. The old program and days remain for historical foreign keys. Onboarding asks the apply RPC to reuse an already selected active template during retry. Built-ins contain no personal body metrics. The creator-owned Runo starter can publish references through migration 202610010002; other users import private copies.
 
 ## Nutrition seed correction (2026-09-29)
 
@@ -324,3 +324,9 @@ Migration `202609290005_nutrition_target_choice.sql` replaces `forge_seed_user` 
 ## Profile lifecycle (2026-10-01)
 
 Settings calls the lifecycle helper after exact typed confirmation. It validates the Auth user, removes owner-folder uploads with the Storage API in bounded batches, then calls the owner-authorized reset/delete RPC. The identity assertion rejects account switches. On success clear local workout snapshot, pending sets, and owner timer; full navigation discards loaded state. Account deletion also signs out locally. No admin secret enters the browser. SQL removal of Storage metadata is prohibited. An interrupted cleanup can partially remove files; show this and permit retry.
+
+## Reference transfer for templates (2026-10-01)
+
+`loadRoutineTemplate` is shared by onboarding and template management. Apply/reuse the routine atomically, read paginated import targets, then copy each source file into the caller's exercise/day folder in the same private bucket. Deterministic owner destination paths include source ID and immutable source-file version; existing metadata skips completed copies. Remove only an interrupted destination copy before retrying. Save owner metadata after each successful copy. Owner exercise references already attached to that exercise need no duplication.
+
+The routine transaction and Storage copy are separate; failure leaves a loaded week and possibly some references. The UI explains this and permits retry. No service-role key or public bucket is added. Published files are readable to signed-in users only through linked-template Storage RLS. Copying creates independent account-owned files, so creator removal/unpublication/profile deletion cannot erase subscribers' completed copies.
